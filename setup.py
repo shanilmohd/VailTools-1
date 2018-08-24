@@ -15,7 +15,7 @@ URL = 'https://gitlab.com/vail-uvm/vail-tools'
 EMAIL = 'vail.csds@gmail.com'
 AUTHOR = 'Vermont Artificial Intelligence Laboratory'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = 0.1
+VERSION = 0.2
 
 # Required packages
 REQUIRED = [
