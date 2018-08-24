@@ -3,6 +3,7 @@
 
 import io
 import os
+from pathlib import Path
 
 import setuptools
 
@@ -43,6 +44,11 @@ if not VERSION:
         exec(f.read(), about)
 else:
     about['__version__'] = VERSION
+
+# Ensure that Git submodules are correctly initialized
+p = Path(f'{here}/vailtools/losses/LovaszSoftmax/__init__.py')
+if not p.is_file():
+    p.write_text('from .tensorflow.lovasz_losses_tf import lovasz_hinge, lovasz_softmax\n')
 
 setuptools.setup(
     name=NAME,

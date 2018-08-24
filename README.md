@@ -10,12 +10,16 @@ Please clone the repository then install it locally using the following commands
 ```bash
 git clone git@gitlab.com:vail-uvm/vailtools.git
 cd VailTools
+git submodule init
+git submodule update
 pip install -e .
 ```
 Or if you do not have an SSH key setup for GitLab, then use:
 ```bash
 git clone https://gitlab.com/vail-uvm/vailtools.git
 cd VailTools
+git submodule init
+git submodule update
 pip install -e .
 ```
 
