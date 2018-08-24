@@ -1,5 +1,7 @@
+"""
+Provides metrics suitable for monitoring and evaluating Keras models.
+"""
 import keras.backend as K
-import numpy as np
 
 
 def iou_score(y_true, y_pred):
@@ -60,19 +62,3 @@ def dice_score(y_true, y_pred):
     numerator = 2. * K.sum(K.batch_flatten(y_true * y_pred), axis=-1)
     denominator = K.sum(K.batch_flatten(y_true + y_pred), axis=-1)
     return numerator / denominator
-
-
-def np_iou_score(y_true, y_pred):
-    """
-    Intersection over Union score implemented using numpy.
-
-    Args:
-        y_true: (numpy.ndarray) Target values.
-        y_pred: (numpy.ndarray) Predicted values.
-
-    Returns: (numpy.ndarray)
-        IoU score for each sample.
-    """
-    intersection = np.sum(np.reshape(y_true * y_pred, (len(y_true), -1)), axis=-1)
-    union = np.sum(np.reshape(np.maximum(y_true, y_pred), (len(y_true), -1)), axis=-1)
-    return intersection / union

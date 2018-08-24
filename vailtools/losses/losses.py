@@ -8,7 +8,7 @@ import keras.backend as K
 import tensorflow as tf
 from keras.losses import mse, mae
 
-from . import metrics
+from .. import metrics
 
 
 def iou_loss(y_true, y_pred):
@@ -55,8 +55,7 @@ def error_weighted_categorical_crossentropy(weights):
         weights: (numpy.ndarray) Should have shape (C, C), where C is the number of classes.
     """
     def wcc(y_true, y_pred):
-        # Clip for numerical stability
-        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())
+        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())  # Clip for numerical stability
 
         final_mask = K.zeros_like(y_pred[:, 0])
         y_pred_max = K.max(y_pred, axis=-1, keepdims=True)
@@ -77,8 +76,7 @@ def class_weighted_categorical_crossentropy(weights):
     weights = K.variable(weights)
 
     def loss(y_true, y_pred):
-        # Clip for numerical stability
-        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())
+        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())  # Clip for numerical stability
         return -K.sum(y_true * K.log(y_pred) * weights, axis=-1)
     return loss
 
@@ -92,8 +90,7 @@ def focal_loss(gamma=2., alpha=0.25):
         alpha: (float) Controls the relative contribution of the positive and negative classes.
     """
     def focal_loss_(y_true, y_pred):
-        # Clip for numerical stability
-        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())
+        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())  # Clip for numerical stability
         pt_1 = tf.where(tf.equal(y_true, 1), y_pred, tf.ones_like(y_pred))
         pt_0 = tf.where(tf.equal(y_true, 0), y_pred, tf.zeros_like(y_pred))
         return (
@@ -116,7 +113,3 @@ def mixed_l1_l2_loss(alpha=0.5):
     def loss_(y_true, y_pred):
         return alpha * mse(y_true, y_pred) + (1 - alpha) * mae(y_true, y_pred)
     return loss_
-
-
-def np_iou_loss(y_true, y_pred):
-    return 1 - metrics.np_iou_score(y_true, y_pred)
