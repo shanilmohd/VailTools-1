@@ -10,7 +10,7 @@ import setuptools
 
 # Package meta-data.
 NAME = 'vailtools'
-DESCRIPTION = 'Components, tools, and utilities for building, training, and testing artificial neural networks.'
+DESCRIPTION = 'Components, tools, and utilities for building, training, and testing artificial neural networks in Python.'
 URL = 'https://gitlab.com/vail-uvm/vail-tools'
 EMAIL = 'vail.csds@gmail.com'
 AUTHOR = 'Vermont Artificial Intelligence Laboratory'
