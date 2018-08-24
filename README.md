@@ -18,3 +18,14 @@ git clone https://gitlab.com/vail-uvm/vailtools.git
 cd VailTools
 pip install -e .
 ```
+
+## Contents
+| Name           | Description                                                                                      |
+| ---            | ---                                                                                              |
+| callbacks      | Specialized learning rate schedulers and other callbacks used by keras.models.Model.fit          |
+| data           | Data management utilities such as image tiling and data split generation.                        |
+| evaluation     | Utilities applied at test-time, such as test-time data augmentation.                             |
+| losses         | Loss functions implemented in Keras, Tensorflow, and Numpy.                                      |
+| metrics        | Metrics useful for monitoring training performance, implemented in Keras, Tensorflow, and Numpy. |
+| network_blocks | Building blocks for neural networks such as residual blocks, dense blocks, etc.                  |
+| networks       | Fully constructed and compiled Keras models.                                                     |

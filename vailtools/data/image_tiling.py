@@ -30,8 +30,8 @@ def image_to_tiles(
         window_shape: (tuple[int, int])
         step: (tuple[int, int] or None)
 
-    Returns: numpy.ndarray
-        Stack of tiles with dimensions (N, Win_H, Win_W, C).
+    Returns: (numpy.ndarray)
+        Stack of tiles with dimensions (N, Win_H, Win_W, C)
     """
     image_shape = image.shape[:-1]
     if step is None:
@@ -63,10 +63,10 @@ def tiles_to_image(
         image_shape: (tuple[int, int, int]) Image with shape (H, W, C)
         window_shape: (tuple[int, int])
         step: (tuple[int, int] or None)
-        dtype: Any valid numpy.ndarray dtype.
+        dtype: Any valid numpy.ndarray dtype
 
-    Returns: numpy.ndarray
-        Image with dimensions equal to image_shape, populated from tiles.
+    Returns: (numpy.ndarray)
+        Image with dimensions equal to image_shape, populated from tiles
     """
     if step is None:
         step = window_shape.copy()
@@ -104,8 +104,8 @@ def generate_tile_slices(
         window_shape: (tuple[int, int])
         step: (tuple[int, int] or None)
 
-    Yields: tuple[slice, slice, slice]
-        Slices corresponding to a single 3D tile.
+    Yields: (tuple[slice, slice, slice])
+        Slices corresponding to a single 3D tile
     """
     if step is None:
         step = window_shape.copy()
@@ -147,12 +147,12 @@ def tiles_per_image(
 ):
     """
     Args:
-        image_shape: (numpy.ndarray) Spatial dimensions of an image.
-        window_shape: (numpy.ndarray) Spatial dimensions of a window.
-        step: (numpy.ndarray) Step size to be used in each spatial dimension.
+        image_shape: (numpy.ndarray) Spatial dimensions of an image
+        window_shape: (numpy.ndarray) Spatial dimensions of a window
+        step: (numpy.ndarray) Step size to be used in each spatial dimension
 
     Returns: (int)
-        Number of tiles that will be generated with the given parameters.
+        Number of tiles that will be generated
     """
     if step is None:
         step = window_shape.copy()
