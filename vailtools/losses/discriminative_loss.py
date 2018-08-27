@@ -73,24 +73,24 @@ def var_loss(y_true, y_pred, centroids, delta):
         Variance term for the discriminative loss function.
     """
     vals, idx = tf.unique(tf.reshape(y_true, [tf.size(y_true)]))
+    y_true = tf.squeeze(y_true)
+    # Specify dimensions, since tf.boolean_mask requires that they be known statically
+    y_true.set_shape([None, None])
 
     def loop_body(i, loss):
-        y_true_ = tf.squeeze(y_true)
-        # Specify mask dimensions for tf.boolean mask
-        y_true_.set_shape([None, None])
-        instance = tf.boolean_mask(y_pred, tf.equal(y_true_, vals[i]))
+        instance = tf.boolean_mask(y_pred, tf.equal(y_true, vals[i]))
         loss_ = safe_norm(instance - centroids[i], axis=-1)
         loss_ = tf.square(tf.nn.relu(loss_ - delta))
         return [i + 1, loss.write(i, tf.reduce_mean(loss_))]
 
     loop_vars = [tf.constant(0), tf.TensorArray(dtype=tf.float32, size=tf.size(vals))]
-    _, loss = tf.while_loop(
+    _, losses = tf.while_loop(
         lambda i, loss_: tf.less(i, tf.size(vals)),
         loop_body,
         loop_vars,
         parallel_iterations=100,
     )
-    return tf.reduce_mean(loss.stack())
+    return tf.reduce_mean(losses.stack())
 
 
 def dist_loss(centroids, delta):
