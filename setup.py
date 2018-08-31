@@ -10,12 +10,12 @@ import setuptools
 
 # Package meta-data.
 NAME = 'vailtools'
-DESCRIPTION = 'Components, tools, and utilities for building, training, and testing artificial neural networks.'
+DESCRIPTION = 'Components, tools, and utilities for building, training, and testing artificial neural networks in Python.'
 URL = 'https://gitlab.com/vail-uvm/vail-tools'
 EMAIL = 'vail.csds@gmail.com'
 AUTHOR = 'Vermont Artificial Intelligence Laboratory'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = 0.2
+VERSION = 0.3
 
 # Required packages
 REQUIRED = [
@@ -46,6 +46,7 @@ else:
     about['__version__'] = VERSION
 
 # Ensure that Git submodules are correctly initialized
+# https://github.com/bermanmaxim/LovaszSoftmax
 p = Path(f'{here}/vailtools/losses/LovaszSoftmax/__init__.py')
 if not p.is_file():
     p.write_text('from .tensorflow.lovasz_losses_tf import lovasz_hinge, lovasz_softmax\n')

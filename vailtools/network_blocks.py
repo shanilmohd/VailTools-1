@@ -4,7 +4,7 @@ Provides factory functions for the creation of various building blocks for Keras
 
 
 import numpy as np
-from keras.layers import Activation, Add, BatchNormalization, Concatenate, Conv2D
+from keras.layers import Activation, Add, BatchNormalization, Concatenate, Conv1D, Conv2D, Multiply
 
 
 def residual_block(
@@ -283,3 +283,33 @@ def residual_dilation_block(
         x = Conv2D(filters, 1)(x)
         x = BatchNormalization()(x)
     return merge([pred, x])
+
+
+def wavenet_block(
+    x,
+    activation='tanh',
+    dilation_rate=1,
+    filters=16,
+    gate_activation='sigmoid',
+    gate_merge=None,
+    kernel_size=3,
+    residual_merge=None,
+):
+    if gate_merge is None:
+        gate_merge = Multiply()
+    if residual_merge is None:
+        residual_merge = Add()
+
+    pred = Conv1D(filters=filters, kernel_size=kernel_size, dilation_rate=dilation_rate, padding='causal')(x)
+    pred = BatchNormalization()(pred)
+    pred = Activation(activation)(pred)
+
+    gate = Conv1D(filters=filters, kernel_size=kernel_size, dilation_rate=dilation_rate, padding='causal')(x)
+    gate = BatchNormalization()(gate)
+    gate = Activation(gate_activation)(gate)
+
+    gate_activation = gate_merge([pred, gate])
+
+    skip_out = Conv1D(filters=filters, kernel_size=1, dilation_rate=dilation_rate)(gate_activation)
+    unit_pred = residual_merge([x, skip_out])
+    return unit_pred, skip_out
