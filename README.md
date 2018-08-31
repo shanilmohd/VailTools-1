@@ -1,9 +1,27 @@
 # VaiL Tools
 Components, tools, and utilities for building, training, and testing artificial neural networks in Python.
 
+The primary goal of this package is to provide reference implementations of tools, tricks,
+and architectures, allowing researchers to quickly and easily test a variety of configurations.
+In support of this, VaiL Tools prioritizes modularity, usability, and clarity.
+
+Please open an issue or contact us if you encounter any problems with the package or have a
+feature request.
+
 ## Supported Frameworks
 Vail Tools primarily targets Keras with the Tensorflow backend, though support for other framework 
 configurations may be expanded in the future.
+
+## Contents
+| Name           | Description                                                                                      |
+| ---            | ---                                                                                              |
+| callbacks      | Specialized learning rate schedulers and other callbacks used by keras.models.Model.fit          |
+| data           | Data management utilities such as image tiling and data split generation.                        |
+| evaluation     | Utilities applied at test-time, such as test-time data augmentation.                             |
+| losses         | Loss functions implemented in Keras, Tensorflow, and Numpy.                                      |
+| metrics        | Metrics useful for monitoring training performance, implemented in Keras, Tensorflow, and Numpy. |
+| network_blocks | Building blocks for neural networks such as residual blocks, dense blocks, etc.                  |
+| networks       | Fully constructed and compiled Keras models.   
 
 ## Requirements
 VaiL Tools has been tested with the following configuration, though it may function with a wider range of versions for certain packages.
@@ -17,7 +35,7 @@ VaiL Tools has been tested with the following configuration, though it may funct
 
 
 ## Installation
-Please clone the repository then install it locally using the following commands:
+Clone the repository then install it locally using the following commands:
 ```bash
 git clone git@gitlab.com:vail-uvm/vailtools.git
 cd vailtools
@@ -40,15 +58,4 @@ Due to issues that may be encountered when installing these packages,
 users may wish to install and test them prior to using VaiL Tools.
 [Anaconda](https://www.anaconda.com/) provides a convenient solution to this,
 users are encouraged to follow the Anaconda setup instructions provided in
-[this blog post](https://johnhringiv.com/installing_tensorflow.php). 
-
-## Contents
-| Name           | Description                                                                                      |
-| ---            | ---                                                                                              |
-| callbacks      | Specialized learning rate schedulers and other callbacks used by keras.models.Model.fit          |
-| data           | Data management utilities such as image tiling and data split generation.                        |
-| evaluation     | Utilities applied at test-time, such as test-time data augmentation.                             |
-| losses         | Loss functions implemented in Keras, Tensorflow, and Numpy.                                      |
-| metrics        | Metrics useful for monitoring training performance, implemented in Keras, Tensorflow, and Numpy. |
-| network_blocks | Building blocks for neural networks such as residual blocks, dense blocks, etc.                  |
-| networks       | Fully constructed and compiled Keras models.                                                     |
+[this blog post](https://johnhringiv.com/installing_tensorflow.php).                                                  |
