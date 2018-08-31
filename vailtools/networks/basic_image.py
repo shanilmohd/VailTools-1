@@ -3,7 +3,7 @@ from keras.layers import Activation, Add, BatchNormalization, Concatenate, \
 from keras.models import Model
 from keras.optimizers import SGD
 
-from . import network_blocks
+from .. import network_blocks
 
 
 def restrict_net(

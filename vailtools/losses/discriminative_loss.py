@@ -14,7 +14,7 @@ def discriminative_loss(y_true, y_pred):
     Computes the discriminative loss for a batch of images.
 
     Args:
-        y_true: (tensorflow.Tensor) True instance labels, shape=(B, N, N, 1)
+        y_true: (tensorflow.Tensor) Instance labels, shape=(B, N, N, 1)
         y_pred: (tensorflow.Tensor) Embedded pixels, shape=(B, N, N, E)
 
     Returns: (tensorflow.Tensor)
@@ -40,7 +40,7 @@ def sample_loss(
     Computes the discriminative loss for a single image.
 
     Args:
-        vals: (tuple)
+        vals: (tuple[tensorflow.Tensor]) Instance labels and embedded pixels.
         alpha: (float) Variance term weight.
         beta: (float) Distance term weight.
         gamma: (float) Regularization term weight.
@@ -64,7 +64,7 @@ def var_loss(y_true, y_pred, centroids, delta):
     Computes the intra-cluster pull term for the discriminative loss function.
 
     Args:
-        y_true: (tensorflow.Tensor) True instance labels, shape=(N, N, 1)
+        y_true: (tensorflow.Tensor) Instance labels, shape=(N, N, 1)
         y_pred: (tensorflow.Tensor) Embedded pixels, shape=(N, N, E)
         centroids: (tensorflow.Tensor) Mean of C E-dimensional clusters, shape=(C, E)
         delta: (tensorflow.scalar) Hinge length.
