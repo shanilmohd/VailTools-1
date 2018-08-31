@@ -58,4 +58,4 @@ Due to issues that may be encountered when installing these packages,
 users may wish to install and test them prior to using VaiL Tools.
 [Anaconda](https://www.anaconda.com/) provides a convenient solution to this,
 users are encouraged to follow the Anaconda setup instructions provided in
-[this blog post](https://johnhringiv.com/installing_tensorflow.php).                                                  |
+[this blog post](https://johnhringiv.com/installing_tensorflow.php).
