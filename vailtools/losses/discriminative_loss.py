@@ -144,7 +144,7 @@ def compute_centroids(y_true, y_pred):
     return tf.unsorted_segment_sum(y_pred, idx, tf.size(y)) / tf.expand_dims(tf.to_float(counts), axis=-1)
 
 
-def safe_norm(x, ord_=2, axis=None, keep_dims=False, eps=1e-7, name='safe_norm'):
+def safe_norm(x, ord_=2, axis=None, keepdims=False, eps=1e-7, name='safe_norm'):
     """
     Computes the ord-norm of the input.
     Used in place of tensorflow.norm in order to avoid gradient instabilities.
@@ -155,13 +155,13 @@ def safe_norm(x, ord_=2, axis=None, keep_dims=False, eps=1e-7, name='safe_norm')
         x: (tensorflow.Tensor) Expected to have at least two dimensions (Batch size, sample dimension).
         ord_: (numeric) Order of the norm.
         axis: (int) axis over which the norm will be calculated.
-        keep_dims: (bool) Keep reduced dimensions or drop reduced dimensions.
+        keepdims: (bool) Keep reduced dimensions or drop reduced dimensions.
         eps: (float) Small value to stabilize computation.
         name: (str) Name assigned to the operation in the computation graph.
 
     Returns: (tensorflow.Tensor)
         ord-norm of the input, identical dimensions except for axis which now has a size of 1.
     """
-    inner = tf.reduce_sum(tf.pow(x, ord_), axis=axis, keep_dims=keep_dims)
+    inner = tf.reduce_sum(tf.pow(x, ord_), axis=axis, keepdims=keepdims)
     normed = tf.pow(inner + eps, 1. / ord_)
     return tf.identity(normed, name=name)
