@@ -10,9 +10,10 @@ from keras.layers import Activation, Add, BatchNormalization, Concatenate, Conv1
 def residual_block(
         x,
         activation='selu',
-        filter_shape=(3, 3),
         filters=16,
+        kernel_size=(3, 3),
         merge=None,
+        padding='same',
         project=False,
 ):
     """
@@ -20,12 +21,20 @@ def residual_block(
         https://arxiv.org/pdf/1512.03385.pdf
 
     Args:
-        x: (keras.backend.Tensor) Symbolic input tensor
-        activation: (str) Usually 'relu', 'elu', or 'selu'
-        filter_shape: (tuple[int]) Dimensions of the convolution filters
-        filters: (int) Number of filters used in each convolution
-        merge: (keras.layers.Layer) Used to merge the residual connection, usually Concatenate or Add
-        project: (bool) Toggle application of a 1x1 convolution without non-linearity to the residual connection
+        x: (keras.backend.Tensor)
+            Symbolic input tensor.
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        filters: (int)
+            Number of filters used in each convolution.
+        kernel_size: (tuple[int] or int)
+            Dimensions of the convolution filters.
+        merge: (keras.layers.Layer)
+            Keras layer that merges the input and output branches of a residual block.
+        padding: (str)
+            Padding strategy applied during convolution operations.
+        project: (bool)
+            Toggle application of a 1x1 convolution without non-linearity to the residual connection.
 
     Returns: (keras.backend.Tensor)
         Symbolic output tensor
@@ -33,15 +42,15 @@ def residual_block(
     if merge is None:
         merge = Add()
 
-    pred = Conv2D(filters, filter_shape, padding='same')(x)
+    pred = Conv2D(filters, kernel_size=kernel_size, padding=padding)(x)
     pred = BatchNormalization()(pred)
     pred = Activation(activation)(pred)
 
-    pred = Conv2D(filters, filter_shape, padding='same')(pred)
+    pred = Conv2D(filters, kernel_size=kernel_size, padding=padding)(pred)
     pred = BatchNormalization()(pred)
 
     if project:
-        x = Conv2D(filters, (1, 1))(x)
+        x = Conv2D(filters, kernel_size=(1, 1))(x)
         x = BatchNormalization()(x)
     pred = merge([x, pred])
     return Activation(activation)(pred)
@@ -50,10 +59,11 @@ def residual_block(
 def residual_bottlneck_block(
         x,
         activation='selu',
-        filter_shape=(3, 3),
+        kernel_size=(3, 3),
         filters=16,
         merge=None,
         neck_filters=None,
+        padding='same',
         project=False,
 ):
     """
@@ -61,13 +71,22 @@ def residual_bottlneck_block(
         https://arxiv.org/pdf/1512.03385.pdf
 
     Args:
-        x: (keras.backend.Tensor) Symbolic input tensor
-        activation: (str) Usually 'relu', 'elu', or 'selu'
-        filter_shape: (tuple[int]) Dimensions of the convolution filters
-        filters: (int) Number of filters used in output convolution
-        merge: (keras.layers.Layer) Used to merge the residual connection, usually Concatenate or Add
-        neck_filters: (int) Number of filters used in bottleneck convolutions
-        project: (bool) Toggle application of a 1x1 convolution without non-linearity to the residual connection
+        x: (keras.backend.Tensor)
+            Symbolic input tensor.
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        filters: (int)
+            Number of filters used in each convolution.
+        kernel_size: (tuple[int] or int)
+            Dimensions of the convolution filters.
+        merge: (keras.layers.Layer)
+            Keras layer that merges the input and output branches of a residual block.
+        neck_filters: (int)
+            Number of filters used in bottleneck convolutions.
+        padding: (str)
+            Padding strategy applied during convolution operations.
+        project: (bool)
+            Toggle application of a 1x1 convolution without non-linearity to the residual connection.
 
     Returns: (keras.backend.Tensor)
         Symbolic output tensor
@@ -77,23 +96,21 @@ def residual_bottlneck_block(
     if neck_filters is None:
         neck_filters = max(filters // 4, 1)
 
-    pred = Conv2D(neck_filters, (1, 1))(x)
+    pred = Conv2D(neck_filters, kernel_size=(1, 1))(x)
     pred = BatchNormalization()(pred)
     pred = Activation(activation)(pred)
 
-    pred = Conv2D(neck_filters, filter_shape, padding='same')(pred)
+    pred = Conv2D(neck_filters, kernel_size=kernel_size, padding=padding)(pred)
     pred = BatchNormalization()(pred)
     pred = Activation(activation)(pred)
 
-    pred = Conv2D(filters, (1, 1))(pred)
+    pred = Conv2D(filters, kernel_size=(1, 1))(pred)
     pred = BatchNormalization()(pred)
 
     if project:
-        x = Conv2D(filters, (1, 1))(x)
+        x = Conv2D(filters, kernel_size=(1, 1))(x)
         x = BatchNormalization()(x)
-
     pred = merge([x, pred])
-
     return Activation(activation)(pred)
 
 
@@ -101,20 +118,29 @@ def dense_block(
         x,
         activation='selu',
         depth=2,
-        filter_shape=(3, 3),
         filters=16,
+        kernel_size=(3, 3),
         merge=None,
+        padding='same',
 ):
     """
     Implements a densely connected convolution block, as described in https://arxiv.org/abs/1608.06993
 
     Args:
-        x: (keras.backend.Tensor) Symbolic input tensor
-        activation: (str) Usually 'relu', 'elu', or 'selu'
-        depth: (int) Number of convolutions to use in block construction
-        filter_shape: (tuple[int]) Dimensions of the convolution filters
-        filters: (int) Number of filters used in output convolution
-        merge: (keras.layers.Layer) Used to merge the residual connection, usually Concatenate or Add
+        x: (keras.backend.Tensor)
+            Symbolic input tensor.
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        depth: (int)
+            Number of convolutions used in block construction.
+        filters: (int)
+            Number of filters used in each convolution.
+        kernel_size: (tuple[int] or int)
+            Dimensions of the convolution filters.
+        merge: (keras.layers.Layer)
+            Keras layer that merges the input and output branches of a residual block.
+        padding: (str)
+            Padding strategy applied during convolution operations.
 
     Returns: (keras.backend.Tensor)
         Symbolic output tensor
@@ -124,11 +150,12 @@ def dense_block(
     depth = max(depth, 1)
 
     inputs = [x]
+    pred = x
     for _ in range(depth):
         pred = merge(inputs)
         pred = BatchNormalization()(pred)
         pred = Activation(activation)(pred)
-        pred = Conv2D(filters=filters, kernel_size=filter_shape, padding='same')(pred)
+        pred = Conv2D(filters=filters, kernel_size=kernel_size, padding=padding)(pred)
         inputs.append(pred)
     return pred
 
@@ -136,21 +163,30 @@ def dense_block(
 def sparse_block(
         x,
         activation='selu',
-        depth=2,
-        filter_shape=(3, 3),
+        depth=4,
         filters=16,
+        kernel_size=(3, 3),
         merge=None,
+        padding='same',
 ):
     """
     Implements a sparsely connected convolution block, as described in https://arxiv.org/abs/1801.05895
 
     Args:
-        x: (keras.backend.Tensor) Symbolic input tensor
-        activation: (str) Usually 'relu', 'elu', or 'selu'
-        depth: (int) Number of convolutions to use in block construction
-        filter_shape: (tuple[int]) Dimensions of the convolution filters
-        filters: (int) Number of filters used in output convolution
-        merge: (keras.layers.Layer) Used to merge the residual connection, usually Concatenate or Add
+        x: (keras.backend.Tensor)
+            Symbolic input tensor.
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        depth: (int)
+            Number of convolutions used in block construction.
+        filters: (int)
+            Number of filters used in each convolution.
+        kernel_size: (tuple[int] or int)
+            Dimensions of the convolution filters.
+        merge: (keras.layers.Layer)
+            Keras layer that merges the input and output branches of a residual block.
+        padding: (str)
+            Padding strategy applied during convolution operations.
 
     Returns: (keras.backend.Tensor)
         Symbolic output tensor
@@ -160,49 +196,33 @@ def sparse_block(
     depth = max(depth, 1)
 
     inputs = [x]
+    pred = x
     for i in range(depth):
         inds = [-2**j for j in range(1 + int(np.log2(i + 1)))]
 
         pred = merge([inputs[ind] for ind in inds])
         pred = BatchNormalization()(pred)
         pred = Activation(activation)(pred)
-        pred = Conv2D(filters=filters, kernel_size=filter_shape, padding='same')(pred)
+        pred = Conv2D(filters=filters, kernel_size=kernel_size, padding=padding)(pred)
         inputs.append(pred)
     return pred
 
 
-def fractal_block(
-        x,
-        activation='selu',
-        depth=2,
-        filter_shape=(3, 3),
-        filters=16,
-        merge=None,
-):
+def fractal_block():
     """
-    Implements a fractal convolution block, as described in https://arxiv.org/abs/1605.07648
-
-    Args:
-        x: (keras.backend.Tensor) Symbolic input tensor
-        activation: (str) Usually 'relu', 'elu', or 'selu'
-        depth: (int) Number of convolutions to use in block construction
-        filter_shape: (tuple[int]) Dimensions of the convolution filters
-        filters: (int) Number of filters used in output convolution
-        merge: (keras.layers.Layer) Used to merge the residual connection, usually Concatenate or Add
-
-    Returns: (keras.backend.Tensor)
-        Symbolic output tensor
+    Will implement a fractal convolution block, as described in https://arxiv.org/abs/1605.07648
     """
-    pass
+    raise NotImplementedError('The fractal_block implementation has not been completed!')
 
 
 def dilation_block(
         x,
         activation='selu',
         dilations=None,
-        filter_shape=(3, 3),
         filters=16,
+        kernel_size=(3, 3),
         merge=None,
+        padding='same',
 ):
     """
     Inspired by architectures using dilated convolutions such as:
@@ -211,12 +231,20 @@ def dilation_block(
         https://arxiv.org/abs/1802.10062
 
     Args:
-        x: (keras.backend.Tensor) Symbolic input tensor
-        activation: (str) Usually 'relu', 'elu', or 'selu'
-        dilations: (tuple[int]) Dilation factors to use for parallel convolutions
-        filter_shape: (tuple[int]) Dimensions of the convolution filters
-        filters: (int) Number of filters used in output convolution
-        merge: (keras.layers.Layer) Used to merge the residual connection, usually Concatenate or Add
+        x: (keras.backend.Tensor)
+            Symbolic input tensor.
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        dilations: (tuple[int])
+            Dilation rates used for parallel convolutions.
+        filters: (int)
+            Number of filters used in each convolution.
+        kernel_size: (tuple[int] or int)
+            Dimensions of the convolution filters.
+        merge: (keras.layers.Layer)
+            Keras layer that merges the input and output branches of a residual block.
+        padding: (str)
+            Padding strategy applied during convolution operations.
 
     Returns: (keras.backend.Tensor)
         Symbolic output tensor
@@ -228,7 +256,7 @@ def dilation_block(
 
     pred = BatchNormalization()(x)
     pred = Activation(activation)(pred)
-    preds = [Conv2D(filters, filter_shape, dilation_rate=d, padding='same')(pred) for d in dilations]
+    preds = [Conv2D(filters, kernel_size=kernel_size, dilation_rate=d, padding=padding)(pred) for d in dilations]
     preds = [BatchNormalization()(p) for p in preds]
     return merge(preds)
 
@@ -237,22 +265,32 @@ def residual_dilation_block(
         x,
         activation='selu',
         dilations=None,
-        filter_shape=(3, 3),
         filters=16,
+        kernel_size=(3, 3),
         merge=None,
+        padding='same',
         project=False,
 ):
     """
     Implements a residual block where the fundamental unit is a dilation block rather than a simple convolution.
 
     Args:
-        x: (keras.backend.Tensor) Symbolic input tensor
-        activation: (str) Usually 'relu', 'elu', or 'selu'
-        dilations: (tuple[int]) Dilation factors to use for parallel convolutions
-        filter_shape: (tuple[int]) Dimensions of the convolution filters
-        filters: (int) Number of filters used in output convolution
-        merge: (keras.layers.Layer) Used to merge the residual connection, usually Concatenate or Add
-        project: (bool) Toggle application of a 1x1 convolution without non-linearity to the residual connection
+        x: (keras.backend.Tensor)
+            Symbolic input tensor.
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        dilations: (tuple[int])
+            Dilation rates used for parallel convolutions.
+        filters: (int)
+            Number of filters used in each convolution.
+        kernel_size: (tuple[int] or int)
+            Dimensions of the convolution filters.
+        merge: (keras.layers.Layer)
+            Keras layer that merges the input and output branches of a residual block.
+        padding: (str)
+            Padding strategy applied during convolution operations.
+        project: (bool)
+            Toggle application of a 1x1 convolution without non-linearity to the residual connection
 
     Returns: (keras.backend.Tensor)
         Symbolic output tensor
@@ -266,17 +304,19 @@ def residual_dilation_block(
         x,
         activation=activation,
         dilations=dilations,
-        filter_shape=filter_shape,
         filters=filters,
+        kernel_size=kernel_size,
         merge=merge,
+        padding=padding,
     )
     pred = dilation_block(
         pred,
         activation=activation,
         dilations=dilations,
-        filter_shape=filter_shape,
         filters=filters,
+        kernel_size=kernel_size,
         merge=merge,
+        padding=padding,
     )
 
     if project:
@@ -292,9 +332,37 @@ def wavenet_block(
     filters=16,
     gate_activation='sigmoid',
     gate_merge=None,
-    kernel_size=3,
+    kernel_size=(3, 3),
     residual_merge=None,
 ):
+    """
+    Implements the basic building block of the WaveNet architecture,
+    as described in https://arxiv.org/abs/1609.03499
+
+
+    Args:
+        x: (keras.backend.Tensor)
+            Symbolic input tensor.
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+            Applied to the non-gate branch of a gated activation unit.
+        dilation_rate: (int)
+            Dilation rate used in convolutions.
+        filters: (int)
+            Number of filters used in convolutions.
+        gate_activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+            Applied to the gate branch of a gated activation unit
+        gate_merge: (keras.layers.Layer)
+            Keras layer that merges the gate and non-gate branch of a gated activation unit.
+        kernel_size: (tuple[int] or int)
+            Dimensions of the convolution filters.
+        residual_merge: (keras.layers.Layer)
+            Keras layer that merges the input and output branches of a residual block.
+
+    Returns: (keras.backend.Tensor)
+        Symbolic output tensor
+    """
     if gate_merge is None:
         gate_merge = Multiply()
     if residual_merge is None:

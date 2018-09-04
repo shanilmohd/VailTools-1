@@ -1,3 +1,6 @@
 [submodule "vailtools/losses/LovaszSoftmax"]
 	path = vailtools/losses/LovaszSoftmax
 	url = https://github.com/bermanmaxim/LovaszSoftmax.git
+[submodule "vailtools/layers/coordconv"]
+	path = vailtools/layers/coordconv
+	url = https://github.com/titu1994/keras-coordconv.git

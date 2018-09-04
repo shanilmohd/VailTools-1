@@ -12,6 +12,10 @@ import tensorflow as tf
 def discriminative_loss(y_true, y_pred):
     """
     Computes the discriminative loss for a batch of images.
+    It is recommended to dedicate an entire network, trained end-to-end, to the embedding task.
+    Anecdotally, it seems that the features required for semantic segmentation and instance embedding
+    are fairly distinct, and poor performance is obtained when performing the embedding and segmentation
+    tasks with a single network.
 
     Args:
         y_true: (tensorflow.Tensor) Instance labels, shape=(B, N, N, 1)
@@ -24,7 +28,7 @@ def discriminative_loss(y_true, y_pred):
         sample_loss,
         (y_true, y_pred),
         dtype=tf.float32,
-        parallel_iterations=10,
+        parallel_iterations=100,
     )
 
 

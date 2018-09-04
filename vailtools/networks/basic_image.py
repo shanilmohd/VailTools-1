@@ -1,3 +1,8 @@
+"""
+Several architectures designed for image to image mappings.
+"""
+
+
 from keras.layers import Activation, Add, BatchNormalization, Concatenate, \
     Conv2D, GaussianNoise, Input, MaxPool2D, UpSampling2D
 from keras.models import Model
@@ -11,7 +16,7 @@ def restrict_net(
         depth=4,
         filters=16,
         final_activation='selu',
-        input_dims=(None, None, None),
+        input_shape=(None, None, None),
         loss=None,
         noise_std=0.1,
         optimizer=None,
@@ -20,15 +25,26 @@ def restrict_net(
     """A U-Net without skip connections.
 
     Args:
-        activation: (str)
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+            Applied throughout the network, except for the final activation.
         depth: (int)
+            Number of levels used in the construction of the restrictive/reconstituting paths.
         filters: (int)
-        final_activation: (str)
-        input_dims: (tuple[int])
+            Number of filters used in convolutions, altered by spatial resampling operations.
+        final_activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function
+            Final operation of the network, determines the possible range of network outputs.
+        input_shape: (tuple[int or None])
+            Specifies the dimensions of the input data, does not include the samples dimension.
         loss: (str)
+            Name of a keras loss function or an instance of a  keras/Tensorflow loss function.
         noise_std: (float)
-        optimizer: (keras.optimizers.Optimizer)
+            Standard deviation of an additive 0-mean Gaussian noise applied to network inputs.
+        optimizer: (str or keras.optimizers.Optimizer)
+            Name or instance of a keras optimizer that will be used for training.
         output_channels: (int)
+            Number of output channels/features.
 
     Returns: (keras.models.Model)
         A compiled and ready-to-use Restrict-Net.
@@ -38,7 +54,7 @@ def restrict_net(
     if optimizer is None:
         optimizer = SGD(momentum=0.9)
 
-    inputs = Input(shape=input_dims)
+    inputs = Input(shape=input_shape)
     pred = GaussianNoise(stddev=noise_std)(inputs)
 
     # Restriction
@@ -88,7 +104,7 @@ def u_net(
         depth=4,
         filters=16,
         final_activation='selu',
-        input_dims=(None, None, None),
+        input_shape=(None, None, None),
         loss=None,
         noise_std=0.1,
         optimizer=None,
@@ -105,15 +121,26 @@ def u_net(
         - Uses 3x3 up-conv, rather than 2x2
 
     Args:
-        activation: (str)
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+            Applied throughout the network, except for the final activation.
         depth: (int)
+            Number of levels used in the construction of the restrictive/reconstituting paths.
         filters: (int)
-        final_activation: (str)
-        input_dims: (tuple[int])
+            Number of filters used in convolutions, altered by spatial resampling operations.
+        final_activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function
+            Final operation of the network, determines the possible range of network outputs.
+        input_shape: (tuple[int or None])
+            Specifies the dimensions of the input data, does not include the samples dimension.
         loss: (str)
+            Name of a keras loss function or an instance of a  keras/Tensorflow loss function.
         noise_std: (float)
-        optimizer: (keras.optimizers.Optimizer)
+            Standard deviation of an additive 0-mean Gaussian noise applied to network inputs.
+        optimizer: (str or keras.optimizers.Optimizer)
+            Name or instance of a keras optimizer that will be used for training.
         output_channels: (int)
+            Number of output channels/features.
 
     Returns: (keras.models.Model)
         A compiled and ready-to-use U-Net.
@@ -123,7 +150,7 @@ def u_net(
     if optimizer is None:
         optimizer = SGD(momentum=0.9)
 
-    inputs = Input(shape=input_dims)
+    inputs = Input(shape=input_shape)
     pred = GaussianNoise(stddev=noise_std)(inputs)
 
     # Restriction
@@ -175,7 +202,7 @@ def res_u_net(
         depth=4,
         filters=16,
         final_activation='selu',
-        input_dims=(None, None, None),
+        input_shape=(None, None, None),
         loss=None,
         merge=None,
         noise_std=0.1,
@@ -185,16 +212,28 @@ def res_u_net(
     """A U-Net with residual blocks at each level.
 
     Args:
-        activation: (str)
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+            Applied throughout the network, except for the final activation.
         depth: (int)
+            Number of levels used in the construction of the restrictive/reconstituting paths.
         filters: (int)
-        final_activation: (str)
-        input_dims: (tuple[int])
+            Number of filters used in convolutions, altered by spatial resampling operations.
+        final_activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function
+            Final operation of the network, determines the possible range of network outputs.
+        input_shape: (tuple[int or None])
+            Specifies the dimensions of the input data, does not include the samples dimension.
         loss: (str)
-        merge: (keras.layers.Layer)
+            Name of a keras loss function or an instance of a  keras/Tensorflow loss function.
+        merge: (keras.layers.layer)
+            Keras layer that merges the input and output branches of a residual block, usually keras.layers.Add.
         noise_std: (float)
-        optimizer: (keras.optimizers.Optimizer)
+            Standard deviation of an additive 0-mean Gaussian noise applied to network inputs.
+        optimizer: (str or keras.optimizers.Optimizer)
+            Name or instance of a keras optimizer that will be used for training.
         output_channels: (int)
+            Number of output channels/features.
 
     Returns: (keras.models.Model)
         A compiled and ready-to-use Residual U-Net.
@@ -206,13 +245,13 @@ def res_u_net(
     if optimizer is None:
         optimizer = SGD(momentum=0.9)
 
-    inputs = Input(shape=input_dims)
+    inputs = Input(shape=input_shape)
     pred = GaussianNoise(stddev=noise_std)(inputs)
 
     # Restriction
     crosses = []
     for _ in range(depth):
-        pred = network_blocks.residual_bottlneck_block(
+        pred = network_blocks.residual_block(
             pred,
             filters=filters,
             activation=activation,
@@ -225,7 +264,7 @@ def res_u_net(
         pred = MaxPool2D()(pred)
         filters *= 2
 
-    pred = network_blocks.residual_bottlneck_block(
+    pred = network_blocks.residual_block(
         pred,
         filters=filters,
         activation=activation,
@@ -240,7 +279,7 @@ def res_u_net(
         pred = Conv2D(filters, (3, 3), padding='same')(pred)
 
         pred = Concatenate()([pred, cross])
-        pred = network_blocks.residual_bottlneck_block(
+        pred = network_blocks.residual_block(
             pred,
             filters=filters,
             activation=activation,
@@ -262,7 +301,7 @@ def dilated_net(
         depth=3,
         filters=32,
         final_activation='sigmoid',
-        input_dims=(None, None, None),
+        input_shape=(None, None, None),
         loss=None,
         merge=None,
         noise_std=0.1,
@@ -275,16 +314,28 @@ def dilated_net(
     have extremely large effective receptive fields.
 
     Args:
-        activation: (str)
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+            Applied throughout the network, except for the final activation.
         depth: (int)
+            Number of levels used in the construction of the restrictive/reconstituting paths.
         filters: (int)
-        final_activation: (str)
-        input_dims: (tuple[int])
+            Number of filters used in convolutions, altered by spatial resampling operations.
+        final_activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function
+            Final operation of the network, determines the possible range of network outputs.
+        input_shape: (tuple[int or None])
+            Specifies the dimensions of the input data, does not include the samples dimension.
         loss: (str)
-        merge: (keras.layers.Layer)
+            Name of a keras loss function or an instance of a  keras/Tensorflow loss function.
+        merge: (keras.layers.layer)
+            Keras layer that merges the input and output branches of a residual block, usually keras.layers.Add.
         noise_std: (float)
-        optimizer: (keras.optimizer.Optimizer)
+            Standard deviation of an additive 0-mean Gaussian noise applied to network inputs.
+        optimizer: (str or keras.optimizers.Optimizer)
+            Name or instance of a keras optimizer that will be used for training.
         output_channels: (int)
+            Number of output channels/features.
 
     Returns: (keras.models.Model)
         A compiled and ready-to-use Residual-U-Net.
@@ -296,7 +347,7 @@ def dilated_net(
     if optimizer is None:
         optimizer = SGD(momentum=0.9)
 
-    inputs = Input(shape=input_dims)
+    inputs = Input(shape=input_shape)
     pred = GaussianNoise(stddev=noise_std)(inputs)
 
     for _ in range(depth):
@@ -325,7 +376,7 @@ def res_dilated_net(
         depth=3,
         filters=32,
         final_activation='sigmoid',
-        input_dims=(None, None, None),
+        input_shape=(None, None, None),
         loss=None,
         merge=None,
         noise_std=0.1,
@@ -338,16 +389,28 @@ def res_dilated_net(
     have extremely large effective receptive fields.
 
     Args:
-        activation: (str)
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+            Applied throughout the network, except for the final activation.
         depth: (int)
+            Number of levels used in the construction of the restrictive/reconstituting paths.
         filters: (int)
-        final_activation: (str)
-        input_dims: (tuple[int])
+            Number of filters used in convolutions, altered by spatial resampling operations.
+        final_activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function
+            Final operation of the network, determines the possible range of network outputs.
+        input_shape: (tuple[int or None])
+            Specifies the dimensions of the input data, does not include the samples dimension.
         loss: (str)
-        merge: (keras.layers.Layer)
+            Name of a keras loss function or an instance of a  keras/Tensorflow loss function.
+        merge: (keras.layers.layer)
+            Keras layer that merges the input and output branches of a residual block, usually keras.layers.Add.
         noise_std: (float)
-        optimizer: (keras.optimizer.Optimizer)
+            Standard deviation of an additive 0-mean Gaussian noise applied to network inputs.
+        optimizer: (str or keras.optimizers.Optimizer)
+            Name or instance of a keras optimizer that will be used for training.
         output_channels: (int)
+            Number of output channels/features.
 
     Returns: (keras.models.Model)
         A compiled and ready-to-use Residual-U-Net.
@@ -359,7 +422,7 @@ def res_dilated_net(
     if optimizer is None:
         optimizer = SGD(momentum=0.9)
 
-    inputs = Input(shape=input_dims)
+    inputs = Input(shape=input_shape)
     pred = GaussianNoise(stddev=noise_std)(inputs)
 
     pred = Conv2D(filters, (1, 1))(pred)

@@ -51,6 +51,11 @@ p = Path(f'{here}/vailtools/losses/LovaszSoftmax/__init__.py')
 if not p.is_file():
     p.write_text('from .tensorflow.lovasz_losses_tf import lovasz_hinge, lovasz_softmax\n')
 
+# https://github.com/titu1994/keras-coordconv
+p = Path(f'{here}/vailtools/layers/coordconv/__init__.py')
+if not p.is_file():
+    p.write_text('from .coord import CoordinateChannel1D, CoordinateChannel2D, CoordinateChannel3D\n')
+
 setuptools.setup(
     name=NAME,
     version=about['__version__'],

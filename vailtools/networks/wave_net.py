@@ -15,7 +15,7 @@ def wave_net(
     final_activation='softmax',
     gate_activation='sigmoid',
     gate_merge=None,
-    input_shape=(None, None, None),
+    input_shape=(None, None),
     kernel_size=3,
     loss='mse',
     optimizer=None,
@@ -25,28 +25,46 @@ def wave_net(
 ):
     """
     An implementation of WaveNet, as described in https://arxiv.org/abs/1609.03499, using Keras.
+    Works on time series data with dimensions (samples, time steps, features).
     
     Args:
-        activation: (str or keras.)
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+            Activation applied to non-gate portion of a gated activation unit.
         depth: (int)
+            Number of consecutive gated residual blocks used in model construction.
         dilation_rates: (tuple[int])
+            Sequence of dilation rates used cyclically during the creation of gated residual blocks.
         filters: (int)
-        final_activation: (str)
-        gate_activation: (str)
+            Number of filters used in each convolution operation.
+        final_activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function
+            Final operation of the network, determines the possible range of network outputs.
+        gate_activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+            Activation applied to the gate portion of each gated activation unit.
         gate_merge: (keras.layers.layer)
+            Keras layer to merge the prediction branch and gate branch of a gated activation unit.
         input_shape: (tuple[int or None])
+            Specifies the time steps and features dimensions of the input data, does not include the samples dimension.
         kernel_size: (int)
+            Determines the length of the 1D kernels used in each convolution operation.
         loss: (str)
-        optimizer: (keras.optimizers.Optimizer)
+            Name of a keras loss function or an instance of a  keras/Tensorflow loss function.
+        optimizer: (str or keras.optimizers.Optimizer)
+            Name or instance of a keras optimizer that will be used for training.
         output_channels: (int)
+            Number of output channels/features.
         residual_merge: (keras.layers.layer)
-        tail_activation: (str)
+            Keras layer that merges the input and output branches of a residual block, usually keras.layers.Add.
+        tail_activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
 
     Returns: (keras.models.Model)
         A compiled WaveNet
     """
     if dilation_rates is None:
-        dilation_rates = [2 ** x for x in range(10)]
+        dilation_rates = tuple(2 ** x for x in range(10))
     if gate_merge is None:
         gate_merge = Multiply()
     if optimizer is None:
