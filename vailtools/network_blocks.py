@@ -10,7 +10,9 @@ from keras.layers import Activation, Add, BatchNormalization, Concatenate, Conv1
 def residual_block(
         x,
         activation='selu',
+        bias_initializer='zeros',
         filters=16,
+        kernel_initializer='glorot_uniform',
         kernel_size=(3, 3),
         merge=None,
         padding='same',
@@ -25,8 +27,12 @@ def residual_block(
             Symbolic input tensor.
         activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        bias_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         filters: (int)
             Number of filters used in each convolution.
+        kernel_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         kernel_size: (tuple[int] or int)
             Dimensions of the convolution filters.
         merge: (keras.layers.Layer)
@@ -42,15 +48,32 @@ def residual_block(
     if merge is None:
         merge = Add()
 
-    pred = Conv2D(filters, kernel_size=kernel_size, padding=padding)(x)
+    pred = Conv2D(
+        filters,
+        kernel_size=kernel_size,
+        padding=padding,
+        kernel_initializer=kernel_initializer,
+        bias_initializer=bias_initializer,
+    )(x)
     pred = BatchNormalization()(pred)
     pred = Activation(activation)(pred)
 
-    pred = Conv2D(filters, kernel_size=kernel_size, padding=padding)(pred)
+    pred = Conv2D(
+        filters,
+        kernel_size=kernel_size,
+        padding=padding,
+        kernel_initializer=kernel_initializer,
+        bias_initializer=bias_initializer,
+    )(pred)
     pred = BatchNormalization()(pred)
 
     if project:
-        x = Conv2D(filters, kernel_size=(1, 1))(x)
+        x = Conv2D(
+            filters,
+            kernel_size=(1, 1),
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+        )(x)
         x = BatchNormalization()(x)
     pred = merge([x, pred])
     return Activation(activation)(pred)
@@ -59,8 +82,10 @@ def residual_block(
 def residual_bottlneck_block(
         x,
         activation='selu',
-        kernel_size=(3, 3),
+        bias_initializer='zeros',
         filters=16,
+        kernel_initializer='glorot_uniform',
+        kernel_size=(3, 3),
         merge=None,
         neck_filters=None,
         padding='same',
@@ -75,8 +100,12 @@ def residual_bottlneck_block(
             Symbolic input tensor.
         activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        bias_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         filters: (int)
             Number of filters used in each convolution.
+        kernel_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         kernel_size: (tuple[int] or int)
             Dimensions of the convolution filters.
         merge: (keras.layers.Layer)
@@ -96,19 +125,40 @@ def residual_bottlneck_block(
     if neck_filters is None:
         neck_filters = max(filters // 4, 1)
 
-    pred = Conv2D(neck_filters, kernel_size=(1, 1))(x)
+    pred = Conv2D(
+        neck_filters,
+        bias_initializer=bias_initializer,
+        kernel_initializer=kernel_initializer,
+        kernel_size=(1, 1),
+    )(x)
     pred = BatchNormalization()(pred)
     pred = Activation(activation)(pred)
 
-    pred = Conv2D(neck_filters, kernel_size=kernel_size, padding=padding)(pred)
+    pred = Conv2D(
+        neck_filters,
+        bias_initializer=bias_initializer,
+        kernel_initializer=kernel_initializer,
+        kernel_size=kernel_size,
+        padding=padding,
+    )(pred)
     pred = BatchNormalization()(pred)
     pred = Activation(activation)(pred)
 
-    pred = Conv2D(filters, kernel_size=(1, 1))(pred)
+    pred = Conv2D(
+        filters,
+        bias_initializer=bias_initializer,
+        kernel_initializer=kernel_initializer,
+        kernel_size=(1, 1),
+    )(pred)
     pred = BatchNormalization()(pred)
 
     if project:
-        x = Conv2D(filters, kernel_size=(1, 1))(x)
+        x = Conv2D(
+            filters,
+            bias_initializer=bias_initializer,
+            kernel_initializer=kernel_initializer,
+            kernel_size=(1, 1),
+        )(x)
         x = BatchNormalization()(x)
     pred = merge([x, pred])
     return Activation(activation)(pred)
@@ -117,8 +167,10 @@ def residual_bottlneck_block(
 def dense_block(
         x,
         activation='selu',
+        bias_initializer='zeros',
         depth=2,
         filters=16,
+        kernel_initializer='glorot_uniform',
         kernel_size=(3, 3),
         merge=None,
         padding='same',
@@ -131,10 +183,14 @@ def dense_block(
             Symbolic input tensor.
         activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        bias_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         depth: (int)
             Number of convolutions used in block construction.
         filters: (int)
             Number of filters used in each convolution.
+        kernel_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         kernel_size: (tuple[int] or int)
             Dimensions of the convolution filters.
         merge: (keras.layers.Layer)
@@ -155,7 +211,13 @@ def dense_block(
         pred = merge(inputs)
         pred = BatchNormalization()(pred)
         pred = Activation(activation)(pred)
-        pred = Conv2D(filters=filters, kernel_size=kernel_size, padding=padding)(pred)
+        pred = Conv2D(
+            bias_initializer=bias_initializer,
+            filters=filters,
+            kernel_initializer=kernel_initializer,
+            kernel_size=kernel_size,
+            padding=padding,
+        )(pred)
         inputs.append(pred)
     return pred
 
@@ -163,8 +225,10 @@ def dense_block(
 def sparse_block(
         x,
         activation='selu',
+        bias_initializer='zeros',
         depth=4,
         filters=16,
+        kernel_initializer='glorot_uniform',
         kernel_size=(3, 3),
         merge=None,
         padding='same',
@@ -177,10 +241,14 @@ def sparse_block(
             Symbolic input tensor.
         activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        bias_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         depth: (int)
             Number of convolutions used in block construction.
         filters: (int)
             Number of filters used in each convolution.
+        kernel_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         kernel_size: (tuple[int] or int)
             Dimensions of the convolution filters.
         merge: (keras.layers.Layer)
@@ -203,7 +271,13 @@ def sparse_block(
         pred = merge([inputs[ind] for ind in inds])
         pred = BatchNormalization()(pred)
         pred = Activation(activation)(pred)
-        pred = Conv2D(filters=filters, kernel_size=kernel_size, padding=padding)(pred)
+        pred = Conv2D(
+            bias_initializer=bias_initializer,
+            filters=filters,
+            kernel_initializer=kernel_initializer,
+            kernel_size=kernel_size,
+            padding=padding,
+        )(pred)
         inputs.append(pred)
     return pred
 
@@ -218,8 +292,10 @@ def fractal_block():
 def dilation_block(
         x,
         activation='selu',
+        bias_initializer='zeros',
         dilations=None,
         filters=16,
+        kernel_initializer='glorot_uniform',
         kernel_size=(3, 3),
         merge=None,
         padding='same',
@@ -235,10 +311,14 @@ def dilation_block(
             Symbolic input tensor.
         activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        bias_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         dilations: (tuple[int])
             Dilation rates used for parallel convolutions.
         filters: (int)
             Number of filters used in each convolution.
+        kernel_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         kernel_size: (tuple[int] or int)
             Dimensions of the convolution filters.
         merge: (keras.layers.Layer)
@@ -256,7 +336,17 @@ def dilation_block(
 
     pred = BatchNormalization()(x)
     pred = Activation(activation)(pred)
-    preds = [Conv2D(filters, kernel_size=kernel_size, dilation_rate=d, padding=padding)(pred) for d in dilations]
+    preds = [
+        Conv2D(
+            bias_initializer=bias_initializer,
+            dilation_rate=d,
+            filters=filters,
+            kernel_initializer=kernel_initializer,
+            kernel_size=kernel_size,
+            padding=padding,
+        )(pred)
+        for d in dilations
+    ]
     preds = [BatchNormalization()(p) for p in preds]
     return merge(preds)
 
@@ -264,8 +354,10 @@ def dilation_block(
 def residual_dilation_block(
         x,
         activation='selu',
+        bias_initializer='zeros',
         dilations=None,
         filters=16,
+        kernel_initializer='glorot_uniform',
         kernel_size=(3, 3),
         merge=None,
         padding='same',
@@ -279,10 +371,14 @@ def residual_dilation_block(
             Symbolic input tensor.
         activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        bias_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         dilations: (tuple[int])
             Dilation rates used for parallel convolutions.
         filters: (int)
             Number of filters used in each convolution.
+        kernel_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         kernel_size: (tuple[int] or int)
             Dimensions of the convolution filters.
         merge: (keras.layers.Layer)
@@ -312,8 +408,10 @@ def residual_dilation_block(
     pred = dilation_block(
         pred,
         activation=activation,
+        bias_initializer=bias_initializer,
         dilations=dilations,
         filters=filters,
+        kernel_initializer=kernel_initializer,
         kernel_size=kernel_size,
         merge=merge,
         padding=padding,
@@ -326,14 +424,16 @@ def residual_dilation_block(
 
 
 def wavenet_block(
-    x,
-    activation='tanh',
-    dilation_rate=1,
-    filters=16,
-    gate_activation='sigmoid',
-    gate_merge=None,
-    kernel_size=(3, 3),
-    residual_merge=None,
+        x,
+        activation='tanh',
+        bias_initializer='zeros',
+        dilation_rate=1,
+        filters=16,
+        gate_activation='sigmoid',
+        gate_merge=None,
+        kernel_initializer='glorot_uniform',
+        kernel_size=(3, 3),
+        residual_merge=None,
 ):
     """
     Implements the basic building block of the WaveNet architecture,
@@ -346,10 +446,14 @@ def wavenet_block(
         activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
             Applied to the non-gate branch of a gated activation unit.
+        bias_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         dilation_rate: (int)
             Dilation rate used in convolutions.
         filters: (int)
             Number of filters used in convolutions.
+        kernel_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         gate_activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
             Applied to the gate branch of a gated activation unit
@@ -368,16 +472,37 @@ def wavenet_block(
     if residual_merge is None:
         residual_merge = Add()
 
-    pred = Conv1D(filters=filters, kernel_size=kernel_size, dilation_rate=dilation_rate, padding='causal')(x)
+    pred = Conv1D(
+        bias_initializer=bias_initializer,
+        dilation_rate=dilation_rate,
+        filters=filters,
+        kernel_initializer=kernel_initializer,
+        kernel_size=kernel_size,
+        padding='causal',
+    )(x)
     pred = BatchNormalization()(pred)
     pred = Activation(activation)(pred)
 
-    gate = Conv1D(filters=filters, kernel_size=kernel_size, dilation_rate=dilation_rate, padding='causal')(x)
+    gate = Conv1D(
+        bias_initializer=bias_initializer,
+        dilation_rate=dilation_rate,
+        filters=filters,
+        kernel_initializer=kernel_initializer,
+        kernel_size=kernel_size,
+        padding='causal',
+    )(x)
     gate = BatchNormalization()(gate)
     gate = Activation(gate_activation)(gate)
 
     gate_activation = gate_merge([pred, gate])
 
-    skip_out = Conv1D(filters=filters, kernel_size=1, dilation_rate=dilation_rate)(gate_activation)
+    skip_out = Conv1D(
+        bias_initializer=bias_initializer,
+        dilation_rate=dilation_rate,
+        filters=filters,
+        kernel_initializer=kernel_initializer,
+        kernel_size=1,
+        padding='causal',
+    )(gate_activation)
     unit_pred = residual_merge([x, skip_out])
     return unit_pred, skip_out

@@ -9,6 +9,7 @@ from ..network_blocks import wavenet_block
 
 def wave_net(
     activation='tanh',
+    bias_initializer='zeros',
     depth=10,
     dilation_rates=None,
     filters=16,
@@ -16,6 +17,7 @@ def wave_net(
     gate_activation='sigmoid',
     gate_merge=None,
     input_shape=(None, None),
+    kernel_initializer='glorot_uniform',
     kernel_size=3,
     loss='mse',
     optimizer=None,
@@ -31,6 +33,8 @@ def wave_net(
         activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
             Activation applied to non-gate portion of a gated activation unit.
+        bias_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         depth: (int)
             Number of consecutive gated residual blocks used in model construction.
         dilation_rates: (tuple[int])
@@ -47,6 +51,8 @@ def wave_net(
             Keras layer to merge the prediction branch and gate branch of a gated activation unit.
         input_shape: (tuple[int or None])
             Specifies the time steps and features dimensions of the input data, does not include the samples dimension.
+        kernel_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
         kernel_size: (int)
             Determines the length of the 1D kernels used in each convolution operation.
         loss: (str)
@@ -80,10 +86,12 @@ def wave_net(
         pred, skip_out = wavenet_block(
             pred,
             activation=activation,
+            bias_initializer=bias_initializer,
             dilation_rate=dilation_rate,
             filters=filters,
             gate_activation=gate_activation,
             gate_merge=gate_merge,
+            kernel_initializer=kernel_initializer,
             kernel_size=kernel_size,
             residual_merge=residual_merge,
         )
@@ -92,11 +100,21 @@ def wave_net(
 
     pred = BatchNormalization()(pred)
     pred = Activation(tail_activation)(pred)
-    pred = Conv1D(filters=filters, kernel_size=1)(pred)
+    pred = Conv1D(
+        bias_initializer=bias_initializer,
+        filters=filters,
+        kernel_initializer=kernel_initializer,
+        kernel_size=1,
+    )(pred)
 
     pred = BatchNormalization()(pred)
     pred = Activation(tail_activation)(pred)
-    pred = Conv1D(filters=output_channels, kernel_size=1)(pred)
+    pred = Conv1D(
+        bias_initializer=bias_initializer,
+        filters=output_channels,
+        kernel_initializer=kernel_initializer,
+        kernel_size=1,
+    )(pred)
 
     pred = Activation(final_activation)(pred)
 
