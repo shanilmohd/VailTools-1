@@ -4,17 +4,18 @@ Provides factory functions for the creation of various building blocks for Keras
 
 
 import numpy as np
-from keras.layers import Activation, Add, BatchNormalization, Concatenate, Conv1D, Conv2D, Multiply
+from keras.layers import Activation, add, BatchNormalization, concatenate, Conv1D, Conv2D, multiply
 
 
 def residual_block(
         x,
         activation='selu',
+        batch_normalization=True,
         bias_initializer='zeros',
         filters=16,
         kernel_initializer='glorot_uniform',
         kernel_size=(3, 3),
-        merge=None,
+        merge=add,
         padding='same',
         project=False,
 ):
@@ -27,6 +28,8 @@ def residual_block(
             Symbolic input tensor.
         activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        batch_normalization: (bool)
+            Toggle the use of batch normalization before each activation function application.
         bias_initializer: (str or Callable)
             Name or instance of a keras.initializers.Initializer.
         filters: (int)
@@ -45,9 +48,6 @@ def residual_block(
     Returns: (keras.backend.Tensor)
         Symbolic output tensor
     """
-    if merge is None:
-        merge = Add()
-
     pred = Conv2D(
         filters,
         kernel_size=kernel_size,
@@ -55,7 +55,10 @@ def residual_block(
         kernel_initializer=kernel_initializer,
         bias_initializer=bias_initializer,
     )(x)
-    pred = BatchNormalization()(pred)
+
+    if batch_normalization:
+        pred = BatchNormalization()(pred)
+
     pred = Activation(activation)(pred)
 
     pred = Conv2D(
@@ -65,7 +68,9 @@ def residual_block(
         kernel_initializer=kernel_initializer,
         bias_initializer=bias_initializer,
     )(pred)
-    pred = BatchNormalization()(pred)
+
+    if batch_normalization:
+        pred = BatchNormalization()(pred)
 
     if project:
         x = Conv2D(
@@ -74,7 +79,10 @@ def residual_block(
             kernel_initializer=kernel_initializer,
             bias_initializer=bias_initializer,
         )(x)
-        x = BatchNormalization()(x)
+
+        if batch_normalization:
+            x = BatchNormalization()(x)
+
     pred = merge([x, pred])
     return Activation(activation)(pred)
 
@@ -86,7 +94,7 @@ def residual_bottlneck_block(
         filters=16,
         kernel_initializer='glorot_uniform',
         kernel_size=(3, 3),
-        merge=None,
+        merge=add,
         neck_filters=None,
         padding='same',
         project=False,
@@ -120,8 +128,6 @@ def residual_bottlneck_block(
     Returns: (keras.backend.Tensor)
         Symbolic output tensor
     """
-    if merge is None:
-        merge = Add()
     if neck_filters is None:
         neck_filters = max(filters // 4, 1)
 
@@ -172,7 +178,7 @@ def dense_block(
         filters=16,
         kernel_initializer='glorot_uniform',
         kernel_size=(3, 3),
-        merge=None,
+        merge=concatenate,
         padding='same',
 ):
     """
@@ -201,8 +207,6 @@ def dense_block(
     Returns: (keras.backend.Tensor)
         Symbolic output tensor
     """
-    if merge is None:
-        merge = Concatenate()
     depth = max(depth, 1)
 
     inputs = [x]
@@ -230,7 +234,7 @@ def sparse_block(
         filters=16,
         kernel_initializer='glorot_uniform',
         kernel_size=(3, 3),
-        merge=None,
+        merge=concatenate,
         padding='same',
 ):
     """
@@ -259,8 +263,6 @@ def sparse_block(
     Returns: (keras.backend.Tensor)
         Symbolic output tensor
     """
-    if merge is None:
-        merge = Concatenate()
     depth = max(depth, 1)
 
     inputs = [x]
@@ -297,7 +299,7 @@ def dilation_block(
         filters=16,
         kernel_initializer='glorot_uniform',
         kernel_size=(3, 3),
-        merge=None,
+        merge=add,
         padding='same',
 ):
     """
@@ -331,8 +333,6 @@ def dilation_block(
     """
     if dilations is None:
         dilations = tuple(2 ** x for x in range(4))
-    if merge is None:
-        merge = Add()
 
     pred = BatchNormalization()(x)
     pred = Activation(activation)(pred)
@@ -359,7 +359,7 @@ def residual_dilation_block(
         filters=16,
         kernel_initializer='glorot_uniform',
         kernel_size=(3, 3),
-        merge=None,
+        merge=add,
         padding='same',
         project=False,
 ):
@@ -393,8 +393,6 @@ def residual_dilation_block(
     """
     if dilations is None:
         dilations = tuple(2 ** x for x in range(4))
-    if merge is None:
-        merge = Add()
 
     pred = dilation_block(
         x,
@@ -430,10 +428,10 @@ def wavenet_block(
         dilation_rate=1,
         filters=16,
         gate_activation='sigmoid',
-        gate_merge=None,
+        gate_merge=multiply,
         kernel_initializer='glorot_uniform',
         kernel_size=(3, 3),
-        residual_merge=None,
+        residual_merge=add,
 ):
     """
     Implements the basic building block of the WaveNet architecture,
@@ -467,11 +465,6 @@ def wavenet_block(
     Returns: (keras.backend.Tensor)
         Symbolic output tensor
     """
-    if gate_merge is None:
-        gate_merge = Multiply()
-    if residual_merge is None:
-        residual_merge = Add()
-
     pred = Conv1D(
         bias_initializer=bias_initializer,
         dilation_rate=dilation_rate,

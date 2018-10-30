@@ -1,6 +1,6 @@
 from itertools import cycle
 
-from keras.layers import Activation, Add, BatchNormalization, Conv1D, Input, Multiply
+from keras.layers import Activation, add, BatchNormalization, Conv1D, Input, multiply
 from keras.models import Model
 from keras.optimizers import SGD
 
@@ -15,14 +15,14 @@ def wave_net(
     filters=16,
     final_activation='softmax',
     gate_activation='sigmoid',
-    gate_merge=None,
+    gate_merge=multiply,
     input_shape=(None, None),
     kernel_initializer='glorot_uniform',
     kernel_size=3,
     loss='mse',
     optimizer=None,
     output_channels=1,
-    residual_merge=None,
+    residual_merge=add,
     tail_activation='relu',
 ):
     """
@@ -71,12 +71,8 @@ def wave_net(
     """
     if dilation_rates is None:
         dilation_rates = tuple(2 ** x for x in range(10))
-    if gate_merge is None:
-        gate_merge = Multiply()
     if optimizer is None:
         optimizer = SGD(momentum=0.9)
-    if residual_merge is None:
-        residual_merge = Add()
 
     input_ = Input(shape=input_shape)
     pred = Conv1D(filters=filters, kernel_size=kernel_size, padding='causal')(input_)

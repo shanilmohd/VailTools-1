@@ -23,8 +23,7 @@ REQUIRED = [
 ]
 
 # Optional packages
-EXTRAS = {
-}
+EXTRAS = {}
 
 # Path to package top-level
 here = os.path.abspath(os.path.dirname(__file__))

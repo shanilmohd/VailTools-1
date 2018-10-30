@@ -3,7 +3,7 @@ Several architectures designed for image to image mappings.
 """
 
 
-from keras.layers import Activation, Add, BatchNormalization, Concatenate, \
+from keras.layers import Activation, add, BatchNormalization, concatenate, \
     Conv2D, GaussianNoise, Input, MaxPool2D, UpSampling2D
 from keras.models import Model
 from keras.optimizers import SGD
@@ -251,7 +251,7 @@ def u_net(
             padding='same',
         )(pred)
 
-        pred = Concatenate()([pred, cross])
+        pred = concatenate([pred, cross])
         pred = BatchNormalization()(pred)
         pred = Activation(activation)(pred)
         pred = Conv2D(
@@ -296,7 +296,7 @@ def res_u_net(
         input_shape=(None, None, None),
         kernel_initializer='glorot_uniform',
         loss=None,
-        merge=None,
+        merge=add,
         noise_std=0.1,
         optimizer=None,
         output_channels=1,
@@ -336,8 +336,6 @@ def res_u_net(
     """
     if loss is None:
         loss = 'mse'
-    if merge is None:
-        merge = Add()
     if optimizer is None:
         optimizer = SGD(momentum=0.9)
 
@@ -378,7 +376,7 @@ def res_u_net(
         filters //= 2
         pred = Conv2D(filters, (3, 3), padding='same')(pred)
 
-        pred = Concatenate()([pred, cross])
+        pred = concatenate([pred, cross])
         pred = network_blocks.residual_block(
             pred,
             activation=activation,
@@ -407,7 +405,7 @@ def dilated_net(
         input_shape=(None, None, None),
         kernel_initializer='glorot_uniform',
         loss=None,
-        merge=None,
+        merge=add,
         noise_std=0.1,
         optimizer=None,
         output_channels=1,
@@ -450,8 +448,6 @@ def dilated_net(
     """
     if loss is None:
         loss = 'mse'
-    if merge is None:
-        merge = Add()
     if optimizer is None:
         optimizer = SGD(momentum=0.9)
 
@@ -501,7 +497,7 @@ def res_dilated_net(
         input_shape=(None, None, None),
         kernel_initializer='glorot_uniform',
         loss=None,
-        merge=None,
+        merge=add,
         noise_std=0.1,
         optimizer=None,
         output_channels=1,
@@ -544,8 +540,6 @@ def res_dilated_net(
     """
     if loss is None:
         loss = 'mse'
-    if merge is None:
-        merge = Add()
     if optimizer is None:
         optimizer = SGD(momentum=0.9)
 
