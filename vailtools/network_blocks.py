@@ -386,7 +386,7 @@ def residual_dilation_block(
         padding: (str)
             Padding strategy applied during convolution operations.
         project: (bool)
-            Toggle application of a 1x1 convolution without non-linearity to the residual connection
+            Toggle application of a 1x1 convolution without non-linearity on residual connections
 
     Returns: (keras.backend.Tensor)
         Symbolic output tensor
