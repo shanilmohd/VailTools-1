@@ -284,11 +284,91 @@ def sparse_block(
     return pred
 
 
-def fractal_block():
+def fractal_block(
+        x,
+        activation='selu',
+        bias_initializer='zeros',
+        depth=4,
+        filters=16,
+        kernel_initializer='glorot_uniform',
+        kernel_size=(3, 3),
+        merge=concatenate,
+        padding='same',
+):
     """
-    Will implement a fractal convolution block, as described in https://arxiv.org/abs/1605.07648
+    Implements a fractal convolution block, as described in https://arxiv.org/abs/1605.07648.
+
+    ***Testing required***
+
+    Args:
+        x: (keras.backend.Tensor)
+            Symbolic input tensor.
+        activation: (str or Callable)
+            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+        bias_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
+        depth: (int)
+            Number of convolutions used in block construction.
+        filters: (int)
+            Number of filters used in each convolution.
+        kernel_initializer: (str or Callable)
+            Name or instance of a keras.initializers.Initializer.
+        kernel_size: (tuple[int] or int)
+            Dimensions of the convolution filters.
+        merge: (keras.layers.Layer)
+            Keras layer that merges the input and output branches of a residual block.
+        padding: (str)
+            Padding strategy applied during convolution operations.
+
+    Returns: (keras.backend.Tensor)
+        Symbolic output tensor
     """
-    raise NotImplementedError('The fractal_block implementation has not been completed!')
+    if depth == 0:
+        pred = Conv2D(
+            bias_initializer=bias_initializer,
+            filters=filters,
+            kernel_initializer=kernel_initializer,
+            kernel_size=kernel_size,
+            padding=padding,
+        )(x)
+        pred = BatchNormalization()(pred)
+        pred = Activation(activation)(pred)
+        return pred
+
+    else:
+        branch1 = fractal_block(
+            x,
+            activation=activation,
+            bias_initializer=bias_initializer,
+            depth=depth - 1,
+            filters=filters,
+            kernel_initializer=kernel_initializer,
+            kernel_size=kernel_size,
+            merge=merge,
+            padding=padding,
+        )
+        branch1 = fractal_block(
+            branch1,
+            activation=activation,
+            bias_initializer=bias_initializer,
+            depth=depth - 1,
+            filters=filters,
+            kernel_initializer=kernel_initializer,
+            kernel_size=kernel_size,
+            merge=merge,
+            padding=padding,
+        )
+
+        branch2 = Conv2D(
+            bias_initializer=bias_initializer,
+            filters=filters,
+            kernel_initializer=kernel_initializer,
+            kernel_size=kernel_size,
+            padding=padding,
+        )(x)
+        branch2 = BatchNormalization()(branch2)
+        branch2 = Activation(activation)(branch2)
+        return merge([branch1, branch2])
 
 
 def dilation_block(
