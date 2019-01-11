@@ -20,7 +20,7 @@ def iou_score(y_true, y_pred):
         IoU score for each sample.
     """
     intersection = K.sum(K.batch_flatten(y_true * y_pred), axis=-1)
-    union = K.sum(K.batch_flatten(K.maximum(y_true, y_pred)), axis=-1)
+    union = K.sum(K.batch_flatten(y_true + y_pred), axis=-1) - intersection
     return intersection / union
 
 

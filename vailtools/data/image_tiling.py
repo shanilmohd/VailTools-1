@@ -82,8 +82,8 @@ def tiles_to_image(
         raise ValueError(f'Mismatch between tiles {len(tiles)} and generated '
                          f'slices {len(slices_list)}')
 
-    image = np.zeros(image_shape, dtype=dtype)
-    counts = np.zeros(image_shape, dtype=float)
+    image = np.zeros([*image_shape, tiles.shape[-1]], dtype=dtype)
+    counts = np.zeros([*image_shape, tiles.shape[-1]], dtype=float)
     for tile, slices in zip(tiles, slices_list):
         image[slices] += tile
         counts[slices] += 1.

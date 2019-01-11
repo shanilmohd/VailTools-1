@@ -15,7 +15,7 @@ URL = 'https://gitlab.com/vail-uvm/vail-tools'
 EMAIL = 'vail.csds@gmail.com'
 AUTHOR = 'Vermont Artificial Intelligence Laboratory'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = 0.3
+VERSION = 0.4
 
 # Required packages
 REQUIRED = [
@@ -23,8 +23,7 @@ REQUIRED = [
 ]
 
 # Optional packages
-EXTRAS = {
-}
+EXTRAS = {}
 
 # Path to package top-level
 here = os.path.abspath(os.path.dirname(__file__))
@@ -50,6 +49,16 @@ else:
 p = Path(f'{here}/vailtools/losses/LovaszSoftmax/__init__.py')
 if not p.is_file():
     p.write_text('from .tensorflow.lovasz_losses_tf import lovasz_hinge, lovasz_softmax\n')
+
+# https://github.com/titu1994/keras-coordconv
+p = Path(f'{here}/vailtools/layers/coordconv/__init__.py')
+if not p.is_file():
+    p.write_text('from .coord import CoordinateChannel1D, CoordinateChannel2D, CoordinateChannel3D\n')
+
+# https://github.com/CyberZHG/keras-drop-block
+p = Path(f'{here}/vailtools/layers/dropblock/__init__.py')
+if not p.is_file():
+    p.write_text('from .keras_drop_block import DropBlock1D, DropBlock2D\n')
 
 setuptools.setup(
     name=NAME,

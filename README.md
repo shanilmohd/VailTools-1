@@ -39,17 +39,13 @@ Clone the repository then install it locally using the following commands:
 ```bash
 git clone git@gitlab.com:vail-uvm/vailtools.git
 cd vailtools
-git submodule init
-git submodule update
-pip install -e .
+bash install.sh
 ```
-If you do not have an SSH key setup for GitLab, then use:
+If you do not have SSH setup for GitLab, then use:
 ```bash
 git clone https://gitlab.com/vail-uvm/vailtools.git
 cd vailtools
-git submodule init
-git submodule update
-pip install -e .
+bash install.sh
 ```
 
 __Note:__ Installing VaiL Tools with the above commands will result in the installation of 
@@ -58,4 +54,4 @@ Due to issues that may be encountered when installing these packages,
 users may wish to install and test them prior to using VaiL Tools.
 [Anaconda](https://www.anaconda.com/) provides a convenient solution to this,
 users are encouraged to follow the Anaconda setup instructions provided in
-[this blog post](https://johnhringiv.com/installing_tensorflow.php).                                                  |
+[this blog post](https://johnhringiv.com/installing_tensorflow.php).
