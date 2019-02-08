@@ -13,7 +13,7 @@ import numpy as np
 SplitIndices = namedtuple('SplitIndices', ['train', 'val', 'test'])
 
 
-def generate_splits(samples, train_frac=None, val_frac=None, test_frac=None):
+def generate_splits(samples, train_frac=.6, val_frac=.2, test_frac=.2):
     if train_frac is None:
         train_frac = 1. - (val_frac + test_frac)
     elif val_frac is None:
@@ -49,19 +49,28 @@ def load_splits(file):
     )
 
 
+def save_splits(splits, file):
+    np.savez_compressed(file, **splits._asdict())
+
+
 DataSplit = namedtuple('DataSplit', ['x', 'y'])
 
 
-def split_data(x, y, splits=None, save_splits=False, save_path='.', save_name=None):
+def split_data(
+        x,
+        y,
+        splits=None,
+        save=False,
+        save_path='.',
+        save_name='splits',
+        process_func=lambda x, y: (x, y),
+):
     if splits is None:
-        splits = generate_splits(len(x), train_frac=.6, val_frac=.2, test_frac=.2)
-
-    if save_splits:
-        if save_name is None:
-            save_name = 'splits'
-        np.savez_compressed(f'{save_path}/{save_name}.npz', **splits._asdict())
+        splits = generate_splits(len(x))
+    if save:
+        save_splits(splits, f'{save_path}/{save_name}.npz')
     return (
-        DataSplit(x[splits.train], y[splits.train]),
-        DataSplit(x[splits.val], y[splits.val]),
-        DataSplit(x[splits.test], y[splits.test]),
+        DataSplit(*process_func(x[splits.train], y[splits.train])),
+        DataSplit(*process_func(x[splits.val], y[splits.val])),
+        DataSplit(*process_func(x[splits.test], y[splits.test])),
     )
