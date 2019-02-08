@@ -4,3 +4,6 @@
 [submodule "vailtools/layers/coordconv"]
 	path = vailtools/layers/coordconv
 	url = https://github.com/titu1994/keras-coordconv.git
+[submodule "vailtools/layers/dropblock"]
+	path = vailtools/layers/dropblock
+	url = https://github.com/CyberZHG/keras-drop-block.git
