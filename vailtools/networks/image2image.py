@@ -8,6 +8,7 @@ from keras.layers import Activation, add, BatchNormalization, concatenate, \
 from keras.models import Model
 from keras.optimizers import SGD
 
+from .. import layers
 from .. import network_blocks
 
 
@@ -290,6 +291,7 @@ def u_net(
 def res_u_net(
         activation='selu',
         bias_initializer='zeros',
+        coord_features=False,
         depth=4,
         filters=16,
         final_activation='selu',
@@ -309,6 +311,8 @@ def res_u_net(
             Applied throughout the network, except for the final activation.
         bias_initializer: (str or Callable)
             Name or instance of a keras.initializers.Initializer.
+        coord_features: (bool)
+            Adds coordinate feature channels to the input, allowing the network to better handle spatially varying relationships.
         depth: (int)
             Number of levels used in the construction of the restrictive/reconstituting paths.
         filters: (int)
@@ -341,6 +345,9 @@ def res_u_net(
 
     inputs = Input(shape=input_shape)
     pred = GaussianNoise(stddev=noise_std)(inputs)
+
+    if coord_features:
+        pred = layers.CoordinateChannel2D()(pred)
 
     # Restriction
     crosses = []
