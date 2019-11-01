@@ -5,6 +5,87 @@ from keras.models import Model
 from keras.optimizers import SGD
 
 from ..network_blocks import wavenet_block
+from ..layers import SnailAttentionBlock, SnailTCBlock
+
+
+def snail_mdp(
+        input_shape=(None, None),
+        sequence_length=32,
+        filters=32,
+        key_size=32,
+        value_size=32,
+):
+    """
+    Settings taken from Section C.1 of https://arxiv.org/abs/1707.03141
+
+    Args:
+        input_shape:
+        sequence_length:
+        filters:
+        key_size:
+        value_size:
+
+    Returns:
+    """
+    inputs = Input(shape=input_shape)
+    pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(inputs)
+    pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(pred)
+    pred = SnailAttentionBlock(key_size=key_size, value_size=value_size)(pred)
+    return pred
+
+
+def snail_control(
+        input_shape=(None, None),
+        sequence_length=32,
+        filters=32,
+        key_size=16,
+        value_size=16,
+):
+    """
+    Settings taken from Section C.2 of https://arxiv.org/abs/1707.03141
+
+    Args:
+        input_shape:
+        sequence_length:
+        filters:
+        key_size:
+        value_size:
+
+    Returns:
+    """
+    inputs = Input(shape=input_shape)
+    pred = SnailAttentionBlock(key_size=key_size, value_size=value_size)(inputs)
+    pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(pred)
+    pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(pred)
+    pred = SnailAttentionBlock(key_size=key_size, value_size=value_size)(pred)
+    return pred
+
+
+def snail_visual(
+        input_shape=(None, None),
+        sequence_length=32,
+        filters=32,
+        key_size=16,
+        value_size=16,
+):
+    """
+    Settings taken from Section C.3 of https://arxiv.org/abs/1707.03141
+
+    Args:
+        input_shape:
+        sequence_length:
+        filters:
+        key_size:
+        value_size:
+
+    Returns:
+    """
+    inputs = Input(shape=input_shape)
+    pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(inputs)
+    pred = SnailAttentionBlock(key_size=key_size, value_size=value_size)(pred)
+    pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(pred)
+    pred = SnailAttentionBlock(key_size=key_size, value_size=value_size)(pred)
+    return pred
 
 
 def wave_net(
