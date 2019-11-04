@@ -42,6 +42,8 @@ class SnailAttentionBlock(Layer):
         self.values_fc.build(input_shape)
         self._trainable_weights.extend(self.values_fc.trainable_weights)
 
+        super().build(input_shape)
+
     def call(self, inputs, **kwargs):
         # check that the implementation matches exactly py torch.
         keys = self.keys_fc(inputs)
@@ -94,6 +96,8 @@ class SnailDenseBlock(Layer):
         self.gate_branch.build(input_shape)
         self._trainable_weights.extend(self.gate_branch.trainable_weights)
 
+        super().build(input_shape)
+
     def call(self, inputs, **kwargs):
         activations = multiply([self.value_branch(inputs), self.gate_branch(inputs)])
         return concatenate([activations, inputs])
@@ -118,16 +122,21 @@ class SnailTCBlock(Layer):
         super().__init__(**kwargs)
 
     def build(self, input_shape):
+        output_shape = input_shape
         for i in range(self.layer_count):
-            layer = SnailDenseBlock(filters=self.filters, dilation_rate=i + 1)
-            layer.build(input_shape)
-            self.trainable_weights.extend(layer)
+            layer = SnailDenseBlock(filters=self.filters, dilation_rate=2**i)
+            layer.build(output_shape)
+            output_shape = layer.compute_output_shape(output_shape)
+            self._trainable_weights.extend(layer.trainable_weights)
             self.layers.append(layer)
 
+        super().build(input_shape)
+
     def call(self, inputs, **kwargs):
+        pred = inputs
         for layer in self.layers:
-            inputs = layer(inputs)
-        return inputs
+            pred = layer(pred)
+        return pred
 
     def compute_output_shape(self, input_shape):
         output_shape = list(input_shape)
@@ -144,3 +153,32 @@ get_custom_objects().update({
     x.__name__: x
     for x in [SnailAttentionBlock, SnailDenseBlock, SnailTCBlock]
 })
+
+
+if __name__ == '__main__':
+    import keras
+
+    m1 = keras.models.Sequential([SnailAttentionBlock(key_size=32, value_size=32)])
+    m1.compile(optimizer='adam', loss='mse')
+    m1.fit(np.random.random((32, 16, 16)), np.random.random((32, 16, 16 + 32)))
+    m1.summary()
+
+    m2 = keras.models.Sequential([SnailDenseBlock(filters=32, dilation_rate=1)])
+    m2.compile(optimizer='adam', loss='mse')
+    m2.fit(np.random.random((32, 16, 16)), np.random.random((32, 16, 16 + 32)))
+    m2.summary()
+
+    m3 = keras.models.Sequential([
+        SnailDenseBlock(filters=16, dilation_rate=1),
+        SnailDenseBlock(filters=16, dilation_rate=2),
+        SnailDenseBlock(filters=16, dilation_rate=4),
+        SnailDenseBlock(filters=16, dilation_rate=8),
+    ])
+    m3.compile(optimizer='adam', loss='mse')
+    m3.fit(np.random.random((32, 16, 16)), np.random.random((32, 16, 16 + 16 * 4)))
+    m3.summary()
+
+    m4 = keras.models.Sequential([SnailTCBlock(sequence_length=16, filters=16)])
+    m4.compile(optimizer='adam', loss='mse')
+    m4.fit(np.random.random((32, 16, 16)), np.random.random((32, 16, 16 + 16 * 4)))
+    m4.summary()

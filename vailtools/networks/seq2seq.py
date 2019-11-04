@@ -1,5 +1,6 @@
 from itertools import cycle
 
+from keras import layers
 from keras.layers import Activation, add, BatchNormalization, Conv1D, Input, multiply
 from keras.models import Model
 from keras.optimizers import SGD
@@ -9,83 +10,181 @@ from ..layers import SnailAttentionBlock, SnailTCBlock
 
 
 def snail_mdp(
-        input_shape=(None, None),
-        sequence_length=32,
+        embedding_input_dim=None,
+        embedding_output_dim=24,
         filters=32,
+        final_activation='linear',
+        input_shape=(None, None),
         key_size=32,
+        loss='mse',
+        metrics=None,
+        optimizer=None,
+        output_size=10,
+        return_sequences=False,
+        sequence_length=32,
+        use_embedding=True,
         value_size=32,
 ):
     """
     Settings taken from Section C.1 of https://arxiv.org/abs/1707.03141
 
     Args:
-        input_shape:
-        sequence_length:
+        embedding_input_dim:
+        embedding_output_dim:
         filters:
+        final_activation:
+        input_shape:
         key_size:
+        loss:
+        optimizer:
+        output_size:
+        return_sequences:
+        sequence_length:
+        use_embedding:
         value_size:
 
     Returns:
     """
     inputs = Input(shape=input_shape)
-    pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(inputs)
+    if use_embedding:
+        pred = layers.Embedding(embedding_input_dim, embedding_output_dim)(inputs)
+    else:
+        pred = inputs
+
+    pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(pred)
     pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(pred)
     pred = SnailAttentionBlock(key_size=key_size, value_size=value_size)(pred)
-    return pred
+
+    # Used to reduce model output and apply a final activation
+    pred = layers.LSTM(
+        output_size,
+        return_sequences=return_sequences,
+        activation=final_activation
+    )(pred)
+
+    model = Model(inputs=inputs, outputs=pred)
+    model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+    return model
 
 
 def snail_control(
-        input_shape=(None, None),
-        sequence_length=32,
+        embedding_input_dim=None,
+        embedding_output_dim=24,
         filters=32,
+        final_activation='linear',
+        input_shape=(None, None),
         key_size=16,
+        loss='mse',
+        metrics=None,
+        optimizer=None,
+        output_size=10,
+        return_sequences=False,
+        sequence_length=32,
+        use_embedding=True,
         value_size=16,
 ):
     """
     Settings taken from Section C.2 of https://arxiv.org/abs/1707.03141
 
     Args:
-        input_shape:
-        sequence_length:
+        embedding_input_dim:
+        embedding_output_dim:
         filters:
+        final_activation:
+        input_shape:
         key_size:
+        loss:
+        metrics:
+        optimizer:
+        output_size:
+        return_sequences:
+        sequence_length:
+        use_embedding:
         value_size:
 
     Returns:
     """
     inputs = Input(shape=input_shape)
-    pred = SnailAttentionBlock(key_size=key_size, value_size=value_size)(inputs)
+    if use_embedding:
+        pred = layers.Embedding(embedding_input_dim, embedding_output_dim)(inputs)
+    else:
+        pred = inputs
+
+    pred = SnailAttentionBlock(key_size=key_size, value_size=value_size)(pred)
     pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(pred)
     pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(pred)
     pred = SnailAttentionBlock(key_size=key_size, value_size=value_size)(pred)
-    return pred
+
+    # Used to reduce model output and apply a final activation
+    pred = layers.LSTM(
+        output_size,
+        return_sequences=return_sequences,
+        activation=final_activation
+    )(pred)
+
+    model = Model(inputs=inputs, outputs=pred)
+    model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+    return model
 
 
 def snail_visual(
-        input_shape=(None, None),
-        sequence_length=32,
+        embedding_input_dim=None,
+        embedding_output_dim=24,
         filters=32,
+        final_activation='linear',
+        input_shape=(None, None),
         key_size=16,
+        loss='mse',
+        metrics=None,
+        optimizer=None,
+        output_size=10,
+        return_sequences=False,
+        sequence_length=32,
+        use_embedding=True,
         value_size=16,
 ):
     """
     Settings taken from Section C.3 of https://arxiv.org/abs/1707.03141
 
     Args:
-        input_shape:
-        sequence_length:
+        embedding_input_dim:
+        embedding_output_dim:
         filters:
+        final_activation:
+        input_shape:
         key_size:
+        loss:
+        metrics:
+        optimizer:
+        output_size:
+        return_sequences:
+        sequence_length:
+        use_embedding:
         value_size:
 
     Returns:
     """
     inputs = Input(shape=input_shape)
-    pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(inputs)
+    if use_embedding:
+        pred = layers.Embedding(embedding_input_dim, embedding_output_dim)(inputs)
+    else:
+        pred = inputs
+
+    pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(pred)
     pred = SnailAttentionBlock(key_size=key_size, value_size=value_size)(pred)
     pred = SnailTCBlock(sequence_length=sequence_length, filters=filters)(pred)
     pred = SnailAttentionBlock(key_size=key_size, value_size=value_size)(pred)
-    return pred
+
+    # Used to reduce model output and apply a final activation
+    pred = layers.LSTM(
+        output_size,
+        return_sequences=return_sequences,
+        activation=final_activation
+    )(pred)
+
+    model = Model(inputs=inputs, outputs=pred)
+    model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+    return model
 
 
 def wave_net(
