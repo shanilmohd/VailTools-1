@@ -3,8 +3,7 @@ from itertools import cycle
 from keras import layers
 from keras.models import Model
 
-from ..layers import SnailAttentionBlock, SnailTCBlock
-from ..network_blocks import wavenet_block
+from ..layers import SnailAttentionBlock, SnailTCBlock, WaveNetBlock
 
 
 def snail_mdp(
@@ -168,16 +167,14 @@ def wave_net(
     filters=16,
     final_activation='softmax',
     gate_activation='sigmoid',
-    gate_merge=layers.multiply,
     input_shape=(None, None),
     kernel_initializer='glorot_uniform',
     kernel_size=3,
     output_channels=1,
-    residual_merge=layers.add,
     tail_activation='relu',
 ):
     """
-    An implementation of WaveNet, as described in https://arxiv.org/abs/1609.03499, using Keras.
+    An implementation of WaveNet, described in https://arxiv.org/abs/1609.03499, using Keras.
     Works on time series data with dimensions (samples, time steps, features).
     
     Args:
@@ -198,8 +195,6 @@ def wave_net(
         gate_activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
             Activation applied to the gate portion of each gated activation unit.
-        gate_merge: (keras.layers.layer)
-            Keras layer to merge the prediction branch and gate branch of a gated activation unit.
         input_shape: (tuple[int or None])
             Specifies the time steps and features dimensions of the input data, does not include the samples dimension.
         kernel_initializer: (str or Callable)
@@ -209,8 +204,6 @@ def wave_net(
             Name or instance of a keras optimizer that will be used for training.
         output_channels: (int)
             Number of output channels/features.
-        residual_merge: (keras.layers.layer)
-            Keras layer that merges the input and output branches of a residual block, usually keras.layers.Add.
         tail_activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
 
@@ -223,22 +216,16 @@ def wave_net(
     inputs = layers.Input(shape=input_shape)
     pred = layers.Conv1D(filters=filters, kernel_size=kernel_size, padding='causal')(inputs)
 
-    skip_connections = []
     for i, dilation_rate in zip(range(depth), cycle(dilation_rates)):
-        pred, skip_out = wavenet_block(
-            pred,
+        pred = WaveNetBlock(
             activation=activation,
             bias_initializer=bias_initializer,
             dilation_rate=dilation_rate,
             filters=filters,
             gate_activation=gate_activation,
-            gate_merge=gate_merge,
             kernel_initializer=kernel_initializer,
             kernel_size=kernel_size,
-            residual_merge=residual_merge,
-        )
-        skip_connections.append(skip_out)
-    pred = residual_merge(skip_connections)
+        )(pred)
 
     pred = layers.BatchNormalization()(pred)
     pred = layers.Activation(tail_activation)(pred)
@@ -258,5 +245,4 @@ def wave_net(
         kernel_initializer=kernel_initializer,
         kernel_size=1,
     )(pred)
-
     return Model(inputs=inputs, outputs=pred)

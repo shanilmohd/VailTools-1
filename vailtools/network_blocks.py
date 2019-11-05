@@ -4,7 +4,7 @@ Provides factory functions for the creation of various building blocks for Keras
 
 
 import numpy as np
-from keras.layers import Activation, add, BatchNormalization, concatenate, Conv1D, Conv2D, multiply
+from keras.layers import Activation, add, BatchNormalization, concatenate, Conv2D
 
 
 def residual_block(
@@ -499,83 +499,3 @@ def residual_dilation_block(
         x = Conv2D(filters, 1)(x)
         x = BatchNormalization()(x)
     return merge([pred, x])
-
-
-def wavenet_block(
-        x,
-        activation='tanh',
-        bias_initializer='zeros',
-        dilation_rate=1,
-        filters=16,
-        gate_activation='sigmoid',
-        gate_merge=multiply,
-        kernel_initializer='glorot_uniform',
-        kernel_size=(3, 3),
-        residual_merge=add,
-):
-    """
-    Implements the basic building block of the WaveNet architecture,
-    as described in https://arxiv.org/abs/1609.03499
-
-
-    Args:
-        x: (keras.backend.Tensor)
-            Symbolic input tensor.
-        activation: (str or Callable)
-            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
-            Applied to the non-gate branch of a gated activation unit.
-        bias_initializer: (str or Callable)
-            Name or instance of a keras.initializers.Initializer.
-        dilation_rate: (int)
-            Dilation rate used in convolutions.
-        filters: (int)
-            Number of filters used in convolutions.
-        kernel_initializer: (str or Callable)
-            Name or instance of a keras.initializers.Initializer.
-        gate_activation: (str or Callable)
-            Name of a keras activation function or an instance of a keras/Tensorflow activation function.
-            Applied to the gate branch of a gated activation unit
-        gate_merge: (keras.layers.Layer)
-            Keras layer that merges the gate and non-gate branch of a gated activation unit.
-        kernel_size: (tuple[int] or int)
-            Dimensions of the convolution filters.
-        residual_merge: (keras.layers.Layer)
-            Keras layer that merges the input and output branches of a residual block.
-
-    Returns: (keras.backend.Tensor)
-        Symbolic output tensor
-    """
-    pred = Conv1D(
-        bias_initializer=bias_initializer,
-        dilation_rate=dilation_rate,
-        filters=filters,
-        kernel_initializer=kernel_initializer,
-        kernel_size=kernel_size,
-        padding='causal',
-    )(x)
-    pred = BatchNormalization()(pred)
-    pred = Activation(activation)(pred)
-
-    gate = Conv1D(
-        bias_initializer=bias_initializer,
-        dilation_rate=dilation_rate,
-        filters=filters,
-        kernel_initializer=kernel_initializer,
-        kernel_size=kernel_size,
-        padding='causal',
-    )(x)
-    gate = BatchNormalization()(gate)
-    gate = Activation(gate_activation)(gate)
-
-    gate_activation = gate_merge([pred, gate])
-
-    skip_out = Conv1D(
-        bias_initializer=bias_initializer,
-        dilation_rate=dilation_rate,
-        filters=filters,
-        kernel_initializer=kernel_initializer,
-        kernel_size=1,
-        padding='causal',
-    )(gate_activation)
-    unit_pred = residual_merge([x, skip_out])
-    return unit_pred, skip_out
