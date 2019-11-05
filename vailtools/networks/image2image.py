@@ -3,7 +3,7 @@ Several architectures designed for image to image mappings.
 """
 
 
-from keras import layers
+from keras import layers as k_layers
 from keras.models import Model
 
 from .. import layers
@@ -48,14 +48,14 @@ def restrict_net(
     Returns: (keras.models.Model)
         A compiled and ready-to-use Restrict-Net.
     """
-    inputs = layers.Input(shape=input_shape)
-    pred = layers.GaussianNoise(stddev=noise_std)(inputs)
+    inputs = k_layers.Input(shape=input_shape)
+    pred = k_layers.GaussianNoise(stddev=noise_std)(inputs)
 
     # Restriction
     for _ in range(depth):
-        pred = layers.BatchNormalization()(pred)
-        pred = layers.Activation(activation)(pred)
-        pred = layers.Conv2D(
+        pred = k_layers.BatchNormalization()(pred)
+        pred = k_layers.Activation(activation)(pred)
+        pred = k_layers.Conv2D(
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
@@ -63,9 +63,9 @@ def restrict_net(
             padding='same',
         )(pred)
 
-        pred = layers.BatchNormalization()(pred)
-        pred = layers.Activation(activation)(pred)
-        pred = layers.Conv2D(
+        pred = k_layers.BatchNormalization()(pred)
+        pred = k_layers.Activation(activation)(pred)
+        pred = k_layers.Conv2D(
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
@@ -73,13 +73,13 @@ def restrict_net(
             padding='same',
         )(pred)
 
-        pred = layers.MaxPool2D()(pred)
+        pred = k_layers.MaxPool2D()(pred)
         filters *= 2
 
     # Transition
-    pred = layers.BatchNormalization()(pred)
-    pred = layers.Activation(activation)(pred)
-    pred = layers.Conv2D(
+    pred = k_layers.BatchNormalization()(pred)
+    pred = k_layers.Activation(activation)(pred)
+    pred = k_layers.Conv2D(
         bias_initializer=bias_initializer,
         filters=filters,
         kernel_initializer=kernel_initializer,
@@ -89,9 +89,9 @@ def restrict_net(
 
     # Reconstitution
     for _ in range(depth):
-        pred = layers.UpSampling2D()(pred)
+        pred = k_layers.UpSampling2D()(pred)
         filters //= 2
-        pred = layers.Conv2D(
+        pred = k_layers.Conv2D(
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
@@ -99,9 +99,9 @@ def restrict_net(
             padding='same',
         )(pred)
 
-        pred = layers.BatchNormalization()(pred)
-        pred = layers.Activation(activation)(pred)
-        pred = layers.Conv2D(
+        pred = k_layers.BatchNormalization()(pred)
+        pred = k_layers.Activation(activation)(pred)
+        pred = k_layers.Conv2D(
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
@@ -109,9 +109,9 @@ def restrict_net(
             padding='same',
         )(pred)
 
-        pred = layers.BatchNormalization()(pred)
-        pred = layers.Activation(activation)(pred)
-        pred = layers.Conv2D(
+        pred = k_layers.BatchNormalization()(pred)
+        pred = k_layers.Activation(activation)(pred)
+        pred = k_layers.Conv2D(
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
@@ -120,15 +120,15 @@ def restrict_net(
         )(pred)
 
     # Ensure the correct number of output channels and apply the final activation
-    pred = layers.Conv2D(
+    pred = k_layers.Conv2D(
         bias_initializer=bias_initializer,
         filters=output_channels,
         kernel_initializer=kernel_initializer,
         kernel_size=(1, 1),
         padding='same',
     )(pred)
-    pred = layers.BatchNormalization()(pred)
-    pred = layers.Activation(final_activation)(pred)
+    pred = k_layers.BatchNormalization()(pred)
+    pred = k_layers.Activation(final_activation)(pred)
     return Model(inputs=inputs, outputs=pred)
 
 
@@ -178,15 +178,15 @@ def u_net(
     Returns: (keras.models.Model)
         A compiled and ready-to-use U-Net.
     """
-    inputs = layers.Input(shape=input_shape)
-    pred = layers.GaussianNoise(stddev=noise_std)(inputs)
+    inputs = k_layers.Input(shape=input_shape)
+    pred = k_layers.GaussianNoise(stddev=noise_std)(inputs)
 
     # Restriction
     crosses = []
     for _ in range(depth):
-        pred = layers.BatchNormalization()(pred)
-        pred = layers.Activation(activation)(pred)
-        pred = layers.Conv2D(
+        pred = k_layers.BatchNormalization()(pred)
+        pred = k_layers.Activation(activation)(pred)
+        pred = k_layers.Conv2D(
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
@@ -194,18 +194,18 @@ def u_net(
             padding='same',
         )(pred)
 
-        pred = layers.BatchNormalization()(pred)
-        pred = layers.Activation(activation)(pred)
-        pred = layers.Conv2D(filters, (3, 3), padding='same')(pred)
+        pred = k_layers.BatchNormalization()(pred)
+        pred = k_layers.Activation(activation)(pred)
+        pred = k_layers.Conv2D(filters, (3, 3), padding='same')(pred)
 
         crosses.append(pred)
 
-        pred = layers.MaxPool2D()(pred)
+        pred = k_layers.MaxPool2D()(pred)
         filters *= 2
 
-    pred = layers.BatchNormalization()(pred)
-    pred = layers.Activation(activation)(pred)
-    pred = layers.Conv2D(
+    pred = k_layers.BatchNormalization()(pred)
+    pred = k_layers.Activation(activation)(pred)
+    pred = k_layers.Conv2D(
         bias_initializer=bias_initializer,
         filters=filters,
         kernel_initializer=kernel_initializer,
@@ -215,9 +215,9 @@ def u_net(
 
     # Reconstitution
     for cross in crosses[::-1]:
-        pred = layers.UpSampling2D()(pred)
+        pred = k_layers.UpSampling2D()(pred)
         filters //= 2
-        pred = layers.Conv2D(
+        pred = k_layers.Conv2D(
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
@@ -225,10 +225,10 @@ def u_net(
             padding='same',
         )(pred)
 
-        pred = layers.concatenate([pred, cross])
-        pred = layers.BatchNormalization()(pred)
-        pred = layers.Activation(activation)(pred)
-        pred = layers.Conv2D(
+        pred = k_layers.concatenate([pred, cross])
+        pred = k_layers.BatchNormalization()(pred)
+        pred = k_layers.Activation(activation)(pred)
+        pred = k_layers.Conv2D(
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
@@ -236,9 +236,9 @@ def u_net(
             padding='same',
         )(pred)
 
-        pred = layers.BatchNormalization()(pred)
-        pred = layers.Activation(activation)(pred)
-        pred = layers.Conv2D(
+        pred = k_layers.BatchNormalization()(pred)
+        pred = k_layers.Activation(activation)(pred)
+        pred = k_layers.Conv2D(
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
@@ -246,15 +246,15 @@ def u_net(
             padding='same',
         )(pred)
 
-    pred = layers.Conv2D(
+    pred = k_layers.Conv2D(
         bias_initializer=bias_initializer,
         filters=output_channels,
         kernel_initializer=kernel_initializer,
         kernel_size=(1, 1),
         padding='same',
     )(pred)
-    pred = layers.BatchNormalization()(pred)
-    pred = layers.Activation(final_activation)(pred)
+    pred = k_layers.BatchNormalization()(pred)
+    pred = k_layers.Activation(final_activation)(pred)
     return Model(inputs=inputs, outputs=pred)
 
 
@@ -267,7 +267,7 @@ def res_u_net(
         final_activation='selu',
         input_shape=(None, None, None),
         kernel_initializer='glorot_uniform',
-        merge=layers.add,
+        merge=k_layers.add,
         noise_std=0.1,
         output_channels=1,
 ):
@@ -280,7 +280,8 @@ def res_u_net(
         bias_initializer: (str or Callable)
             Name or instance of a keras.initializers.Initializer.
         coord_features: (bool)
-            Adds coordinate feature channels to the input, allowing the network to better handle spatially varying relationships.
+            Adds coordinate feature channels to the input, allowing the network
+            to better handle spatially varying relationships.
         depth: (int)
             Number of levels used in the construction of the restrictive/reconstituting paths.
         filters: (int)
@@ -302,8 +303,8 @@ def res_u_net(
     Returns: (keras.models.Model)
         A compiled and ready-to-use Residual U-Net.
     """
-    inputs = layers.Input(shape=input_shape)
-    pred = layers.GaussianNoise(stddev=noise_std)(inputs)
+    inputs = k_layers.Input(shape=input_shape)
+    pred = k_layers.GaussianNoise(stddev=noise_std)(inputs)
 
     if coord_features:
         pred = layers.CoordinateChannel2D()(pred)
@@ -323,7 +324,7 @@ def res_u_net(
 
         crosses.append(pred)
 
-        pred = layers.MaxPool2D()(pred)
+        pred = k_layers.MaxPool2D()(pred)
         filters *= 2
 
     pred = network_blocks.residual_block(
@@ -338,11 +339,11 @@ def res_u_net(
 
     # Reconstitution
     for cross in crosses[::-1]:
-        pred = layers.UpSampling2D()(pred)
+        pred = k_layers.UpSampling2D()(pred)
         filters //= 2
-        pred = layers.Conv2D(filters, (3, 3), padding='same')(pred)
+        pred = k_layers.Conv2D(filters, (3, 3), padding='same')(pred)
 
-        pred = layers.concatenate([pred, cross])
+        pred = k_layers.concatenate([pred, cross])
         pred = network_blocks.residual_block(
             pred,
             activation=activation,
@@ -353,9 +354,9 @@ def res_u_net(
             project=True,
         )
 
-    pred = layers.Conv2D(output_channels, (1, 1))(pred)
-    pred = layers.BatchNormalization()(pred)
-    pred = layers.Activation(final_activation)(pred)
+    pred = k_layers.Conv2D(output_channels, (1, 1))(pred)
+    pred = k_layers.BatchNormalization()(pred)
+    pred = k_layers.Activation(final_activation)(pred)
     return Model(inputs=inputs, outputs=pred)
 
 
@@ -367,7 +368,7 @@ def dilated_net(
         final_activation='sigmoid',
         input_shape=(None, None, None),
         kernel_initializer='glorot_uniform',
-        merge=layers.add,
+        merge=k_layers.add,
         noise_std=0.1,
         output_channels=1,
 ):
@@ -403,8 +404,8 @@ def dilated_net(
     Returns: (keras.models.Model)
         A compiled and ready-to-use Residual-U-Net.
     """
-    inputs = layers.Input(shape=input_shape)
-    pred = layers.GaussianNoise(stddev=noise_std)(inputs)
+    inputs = k_layers.Input(shape=input_shape)
+    pred = k_layers.GaussianNoise(stddev=noise_std)(inputs)
 
     for _ in range(depth):
         pred = network_blocks.dilation_block(
@@ -416,9 +417,9 @@ def dilated_net(
             merge=merge,
         )
 
-    pred = layers.BatchNormalization()(pred)
-    pred = layers.Activation(activation)(pred)
-    pred = layers.Conv2D(
+    pred = k_layers.BatchNormalization()(pred)
+    pred = k_layers.Activation(activation)(pred)
+    pred = k_layers.Conv2D(
         bias_initializer=bias_initializer,
         filters=filters,
         kernel_initializer=kernel_initializer,
@@ -426,14 +427,14 @@ def dilated_net(
         padding='same',
     )(pred)
 
-    pred = layers.Conv2D(
+    pred = k_layers.Conv2D(
         filters=output_channels,
         kernel_size=(1, 1),
         kernel_initializer=kernel_initializer,
         bias_initializer=bias_initializer,
     )(pred)
-    pred = layers.BatchNormalization()(pred)
-    pred = layers.Activation(final_activation)(pred)
+    pred = k_layers.BatchNormalization()(pred)
+    pred = k_layers.Activation(final_activation)(pred)
     return Model(inputs=inputs, outputs=pred)
 
 
@@ -445,7 +446,7 @@ def res_dilated_net(
         final_activation='sigmoid',
         input_shape=(None, None, None),
         kernel_initializer='glorot_uniform',
-        merge=layers.add,
+        merge=k_layers.add,
         noise_std=0.1,
         output_channels=1,
 ):
@@ -481,10 +482,10 @@ def res_dilated_net(
     Returns: (keras.models.Model)
         A compiled and ready-to-use Residual-U-Net.
     """
-    inputs = layers.Input(shape=input_shape)
-    pred = layers.GaussianNoise(stddev=noise_std)(inputs)
+    inputs = k_layers.Input(shape=input_shape)
+    pred = k_layers.GaussianNoise(stddev=noise_std)(inputs)
 
-    pred = layers.Conv2D(filters, (1, 1))(pred)
+    pred = k_layers.Conv2D(filters, (1, 1))(pred)
     for _ in range(depth):
         pred = network_blocks.residual_dilation_block(
             pred,
@@ -495,9 +496,9 @@ def res_dilated_net(
             merge=merge,
         )
 
-    pred = layers.BatchNormalization()(pred)
-    pred = layers.Activation(activation)(pred)
-    pred = layers.Conv2D(
+    pred = k_layers.BatchNormalization()(pred)
+    pred = k_layers.Activation(activation)(pred)
+    pred = k_layers.Conv2D(
         bias_initializer=bias_initializer,
         filters=filters,
         kernel_initializer=kernel_initializer,
@@ -505,12 +506,12 @@ def res_dilated_net(
         padding='same',
     )(pred)
 
-    pred = layers.Conv2D(
+    pred = k_layers.Conv2D(
         bias_initializer=bias_initializer,
         filters=output_channels,
         kernel_initializer=kernel_initializer,
         kernel_size=(1, 1),
     )(pred)
-    pred = layers.BatchNormalization()(pred)
-    pred = layers.Activation(final_activation)(pred)
+    pred = k_layers.BatchNormalization()(pred)
+    pred = k_layers.Activation(final_activation)(pred)
     return Model(inputs=inputs, outputs=pred)
