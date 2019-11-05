@@ -1,12 +1,10 @@
 from itertools import cycle
 
 from keras import layers
-from keras.layers import Activation, add, BatchNormalization, Conv1D, Input, multiply
 from keras.models import Model
-from keras.optimizers import SGD
 
-from ..network_blocks import wavenet_block
 from ..layers import SnailAttentionBlock, SnailTCBlock
+from ..network_blocks import wavenet_block
 
 
 def snail_mdp(
@@ -16,9 +14,6 @@ def snail_mdp(
         final_activation='linear',
         input_shape=(None, None),
         key_size=32,
-        loss='mse',
-        metrics=None,
-        optimizer=None,
         output_size=10,
         return_sequences=False,
         sequence_length=32,
@@ -35,8 +30,6 @@ def snail_mdp(
         final_activation:
         input_shape:
         key_size:
-        loss:
-        optimizer:
         output_size:
         return_sequences:
         sequence_length:
@@ -45,7 +38,7 @@ def snail_mdp(
 
     Returns:
     """
-    inputs = Input(shape=input_shape)
+    inputs = layers.Input(shape=input_shape)
     if use_embedding:
         pred = layers.Embedding(embedding_input_dim, embedding_output_dim)(inputs)
     else:
@@ -61,10 +54,7 @@ def snail_mdp(
         return_sequences=return_sequences,
         activation=final_activation
     )(pred)
-
-    model = Model(inputs=inputs, outputs=pred)
-    model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-    return model
+    return Model(inputs=inputs, outputs=pred)
 
 
 def snail_control(
@@ -74,9 +64,6 @@ def snail_control(
         final_activation='linear',
         input_shape=(None, None),
         key_size=16,
-        loss='mse',
-        metrics=None,
-        optimizer=None,
         output_size=10,
         return_sequences=False,
         sequence_length=32,
@@ -93,9 +80,6 @@ def snail_control(
         final_activation:
         input_shape:
         key_size:
-        loss:
-        metrics:
-        optimizer:
         output_size:
         return_sequences:
         sequence_length:
@@ -104,7 +88,7 @@ def snail_control(
 
     Returns:
     """
-    inputs = Input(shape=input_shape)
+    inputs = layers.Input(shape=input_shape)
     if use_embedding:
         pred = layers.Embedding(embedding_input_dim, embedding_output_dim)(inputs)
     else:
@@ -121,10 +105,7 @@ def snail_control(
         return_sequences=return_sequences,
         activation=final_activation
     )(pred)
-
-    model = Model(inputs=inputs, outputs=pred)
-    model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-    return model
+    return Model(inputs=inputs, outputs=pred)
 
 
 def snail_visual(
@@ -134,9 +115,6 @@ def snail_visual(
         final_activation='linear',
         input_shape=(None, None),
         key_size=16,
-        loss='mse',
-        metrics=None,
-        optimizer=None,
         output_size=10,
         return_sequences=False,
         sequence_length=32,
@@ -153,9 +131,6 @@ def snail_visual(
         final_activation:
         input_shape:
         key_size:
-        loss:
-        metrics:
-        optimizer:
         output_size:
         return_sequences:
         sequence_length:
@@ -164,7 +139,7 @@ def snail_visual(
 
     Returns:
     """
-    inputs = Input(shape=input_shape)
+    inputs = layers.Input(shape=input_shape)
     if use_embedding:
         pred = layers.Embedding(embedding_input_dim, embedding_output_dim)(inputs)
     else:
@@ -182,9 +157,7 @@ def snail_visual(
         activation=final_activation
     )(pred)
 
-    model = Model(inputs=inputs, outputs=pred)
-    model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-    return model
+    return Model(inputs=inputs, outputs=pred)
 
 
 def wave_net(
@@ -195,14 +168,12 @@ def wave_net(
     filters=16,
     final_activation='softmax',
     gate_activation='sigmoid',
-    gate_merge=multiply,
+    gate_merge=layers.multiply,
     input_shape=(None, None),
     kernel_initializer='glorot_uniform',
     kernel_size=3,
-    loss='mse',
-    optimizer=None,
     output_channels=1,
-    residual_merge=add,
+    residual_merge=layers.add,
     tail_activation='relu',
 ):
     """
@@ -235,9 +206,6 @@ def wave_net(
             Name or instance of a keras.initializers.Initializer.
         kernel_size: (int)
             Determines the length of the 1D kernels used in each convolution operation.
-        loss: (str)
-            Name of a keras loss function or an instance of a  keras/Tensorflow loss function.
-        optimizer: (str or keras.optimizers.Optimizer)
             Name or instance of a keras optimizer that will be used for training.
         output_channels: (int)
             Number of output channels/features.
@@ -251,11 +219,9 @@ def wave_net(
     """
     if dilation_rates is None:
         dilation_rates = tuple(2 ** x for x in range(10))
-    if optimizer is None:
-        optimizer = SGD(momentum=0.9)
 
-    input_ = Input(shape=input_shape)
-    pred = Conv1D(filters=filters, kernel_size=kernel_size, padding='causal')(input_)
+    inputs = layers.Input(shape=input_shape)
+    pred = layers.Conv1D(filters=filters, kernel_size=kernel_size, padding='causal')(inputs)
 
     skip_connections = []
     for i, dilation_rate in zip(range(depth), cycle(dilation_rates)):
@@ -274,26 +240,23 @@ def wave_net(
         skip_connections.append(skip_out)
     pred = residual_merge(skip_connections)
 
-    pred = BatchNormalization()(pred)
-    pred = Activation(tail_activation)(pred)
-    pred = Conv1D(
+    pred = layers.BatchNormalization()(pred)
+    pred = layers.Activation(tail_activation)(pred)
+    pred = layers.Conv1D(
         bias_initializer=bias_initializer,
         filters=filters,
         kernel_initializer=kernel_initializer,
         kernel_size=1,
     )(pred)
 
-    pred = BatchNormalization()(pred)
-    pred = Activation(tail_activation)(pred)
-    pred = Conv1D(
+    pred = layers.BatchNormalization()(pred)
+    pred = layers.Activation(tail_activation)(pred)
+    pred = layers.Conv1D(
+        activation=final_activation,
         bias_initializer=bias_initializer,
         filters=output_channels,
         kernel_initializer=kernel_initializer,
         kernel_size=1,
     )(pred)
 
-    pred = Activation(final_activation)(pred)
-
-    model = Model(inputs=input_, outputs=pred)
-    model.compile(optimizer=optimizer, loss=loss)
-    return model
+    return Model(inputs=inputs, outputs=pred)

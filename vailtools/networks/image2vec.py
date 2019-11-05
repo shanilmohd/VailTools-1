@@ -1,7 +1,5 @@
-from keras.layers import Activation, add, AvgPool2D, BatchNormalization, Conv2D, Dense, Dropout, MaxPool2D, Input, \
-    GaussianNoise, GlobalAveragePooling2D
+from keras import layers
 from keras.models import Model
-from keras.optimizers import SGD
 
 from ..network_blocks import residual_block
 
@@ -17,18 +15,12 @@ def res_net(
         final_activation='softmax',
         input_shape=(None, None, None),
         kernel_initializer='glorot_uniform',
-        loss='categorical_crossentropy',
-        metrics=None,
         noise_std=0.,
         num_classes=10,
-        optimizer=None,
-        residual_merge=add,
+        residual_merge=layers.add,
 ):
-    if optimizer is None:
-        optimizer = SGD(momentum=0.9)
-
-    input_ = Input(shape=input_shape)
-    pred = GaussianNoise(stddev=noise_std)(input_)
+    inputs = layers.Input(shape=input_shape)
+    pred = layers.GaussianNoise(stddev=noise_std)(inputs)
 
     for _ in range(depth):
         for i in range(blocks_per_layer):
@@ -41,31 +33,28 @@ def res_net(
                 merge=residual_merge,
                 project=not bool(i),
             )
-        pred = add([MaxPool2D()(pred), AvgPool2D()(pred)])
+        pred = layers.add([layers.MaxPool2D()(pred), layers.AvgPool2D()(pred)])
         filters *= 2
 
-    pred = Conv2D(
+    pred = layers.Conv2D(
         bias_initializer=bias_initializer,
         filters=filters,
         kernel_initializer=kernel_initializer,
         kernel_size=1,
     )(pred)
-    pred = GlobalAveragePooling2D()(pred)
+    pred = layers.GlobalAveragePooling2D()(pred)
 
-    pred = Dense(dense_neurons)(pred)
-    pred = BatchNormalization()(pred)
-    pred = Activation(activation)(pred)
-    pred = Dropout(drop_prob)(pred)
+    pred = layers.Dense(dense_neurons)(pred)
+    pred = layers.BatchNormalization()(pred)
+    pred = layers.Activation(activation)(pred)
+    pred = layers.Dropout(drop_prob)(pred)
 
-    pred = Dense(dense_neurons)(pred)
-    pred = BatchNormalization()(pred)
-    pred = Activation(activation)(pred)
-    pred = Dropout(drop_prob)(pred)
+    pred = layers.Dense(dense_neurons)(pred)
+    pred = layers.BatchNormalization()(pred)
+    pred = layers.Activation(activation)(pred)
+    pred = layers.Dropout(drop_prob)(pred)
 
-    pred = Dense(num_classes)(pred)
-    pred = BatchNormalization()(pred)
-    pred = Activation(final_activation)(pred)
-
-    model = Model(inputs=input_, outputs=pred)
-    model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-    return model
+    pred = layers.Dense(num_classes)(pred)
+    pred = layers.BatchNormalization()(pred)
+    pred = layers.Activation(final_activation)(pred)
+    return Model(inputs=inputs, outputs=pred)
