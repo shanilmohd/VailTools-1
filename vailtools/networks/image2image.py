@@ -267,7 +267,6 @@ def res_u_net(
         final_activation='selu',
         input_shape=(None, None, None),
         kernel_initializer='glorot_uniform',
-        merge=k_layers.add,
         noise_std=0.1,
         output_channels=1,
 ):
@@ -312,30 +311,26 @@ def res_u_net(
     # Restriction
     crosses = []
     for _ in range(depth):
-        pred = network_blocks.residual_block(
-            pred,
+        pred = layers.ResidualBlock(
             activation=activation,
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
-            merge=merge,
-            project=True,
-        )
+            residual_projection=True,
+        )(pred)
 
         crosses.append(pred)
 
         pred = k_layers.MaxPool2D()(pred)
         filters *= 2
 
-    pred = network_blocks.residual_block(
-        pred,
+    pred = layers.ResidualBlock(
         activation=activation,
         bias_initializer=bias_initializer,
         filters=filters,
         kernel_initializer=kernel_initializer,
-        merge=merge,
-        project=True,
-    )
+        residual_projection=True,
+    )(pred)
 
     # Reconstitution
     for cross in crosses[::-1]:
@@ -344,15 +339,13 @@ def res_u_net(
         pred = k_layers.Conv2D(filters, (3, 3), padding='same')(pred)
 
         pred = k_layers.concatenate([pred, cross])
-        pred = network_blocks.residual_block(
-            pred,
+        pred = layers.ResidualBlock(
             activation=activation,
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
-            merge=merge,
-            project=True,
-        )
+            residual_projection=True,
+        )(pred)
 
     pred = k_layers.Conv2D(output_channels, (1, 1))(pred)
     pred = k_layers.BatchNormalization()(pred)

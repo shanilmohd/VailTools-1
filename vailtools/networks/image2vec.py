@@ -1,7 +1,7 @@
 from keras import layers
 from keras.models import Model
 
-from ..network_blocks import residual_block
+from layers.visual_layers import residual_block
 
 
 def res_net(
