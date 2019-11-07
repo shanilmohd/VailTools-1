@@ -16,7 +16,6 @@ def snail_mdp(
         output_size=10,
         return_sequences=False,
         sequence_length=32,
-        use_embedding=True,
         value_size=32,
 ):
     """
@@ -32,13 +31,12 @@ def snail_mdp(
         output_size:
         return_sequences:
         sequence_length:
-        use_embedding:
         value_size:
 
     Returns:
     """
     inputs = layers.Input(shape=input_shape)
-    if use_embedding:
+    if embedding_input_dim and embedding_output_dim:
         pred = layers.Embedding(embedding_input_dim, embedding_output_dim)(inputs)
     else:
         pred = inputs
@@ -66,7 +64,6 @@ def snail_control(
         output_size=10,
         return_sequences=False,
         sequence_length=32,
-        use_embedding=True,
         value_size=16,
 ):
     """
@@ -82,13 +79,12 @@ def snail_control(
         output_size:
         return_sequences:
         sequence_length:
-        use_embedding:
         value_size:
 
     Returns:
     """
     inputs = layers.Input(shape=input_shape)
-    if use_embedding:
+    if embedding_input_dim and embedding_output_dim:
         pred = layers.Embedding(embedding_input_dim, embedding_output_dim)(inputs)
     else:
         pred = inputs
@@ -117,7 +113,6 @@ def snail_visual(
         output_size=10,
         return_sequences=False,
         sequence_length=32,
-        use_embedding=True,
         value_size=16,
 ):
     """
@@ -133,13 +128,12 @@ def snail_visual(
         output_size:
         return_sequences:
         sequence_length:
-        use_embedding:
         value_size:
 
     Returns:
     """
     inputs = layers.Input(shape=input_shape)
-    if use_embedding:
+    if embedding_input_dim and embedding_output_dim:
         pred = layers.Embedding(embedding_input_dim, embedding_output_dim)(inputs)
     else:
         pred = inputs
@@ -164,8 +158,11 @@ def wave_net(
     bias_initializer='zeros',
     depth=10,
     dilation_rates=None,
+    embedding_input_dim=None,
+    embedding_output_dim=24,
     filters=16,
     final_activation='softmax',
+    flatten_output=False,
     gate_activation='sigmoid',
     input_shape=(None, None),
     kernel_initializer='glorot_uniform',
@@ -187,11 +184,17 @@ def wave_net(
             Number of consecutive gated residual blocks used in model construction.
         dilation_rates: (tuple[int])
             Sequence of dilation rates used cyclically during the creation of gated residual blocks.
+        embedding_input_dim:
+
+        embedding_output_dim:
+
         filters: (int)
             Number of filters used in each convolution operation.
         final_activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function
             Final operation of the network, determines the possible range of network outputs.
+        flatten_output: (bool)
+            Toggles the use of a global average pooling operation to remove the time dimension from the outputs.
         gate_activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
             Activation applied to the gate portion of each gated activation unit.
@@ -214,7 +217,13 @@ def wave_net(
         dilation_rates = tuple(2 ** x for x in range(10))
 
     inputs = layers.Input(shape=input_shape)
-    pred = layers.Conv1D(filters=filters, kernel_size=kernel_size, padding='causal')(inputs)
+
+    if embedding_input_dim and embedding_output_dim:
+        pred = layers.Embedding(embedding_input_dim, embedding_output_dim)(inputs)
+    else:
+        pred = inputs
+
+    pred = layers.Conv1D(filters=filters, kernel_size=kernel_size, padding='causal')(pred)
 
     for i, dilation_rate in zip(range(depth), cycle(dilation_rates)):
         pred = WaveNetBlock(
@@ -245,4 +254,8 @@ def wave_net(
         kernel_initializer=kernel_initializer,
         kernel_size=1,
     )(pred)
+
+    if flatten_output:
+        pred = layers.GlobalAvgPool1D()(pred)
+
     return Model(inputs=inputs, outputs=pred)

@@ -14,7 +14,7 @@ class WaveNetBlock(layers.Layer):
             filters=16,
             gate_activation='sigmoid',
             kernel_initializer='glorot_uniform',
-            kernel_size=(3, 3),
+            kernel_size=3,
             **kwargs,
     ):
         """
@@ -84,7 +84,7 @@ class WaveNetBlock(layers.Layer):
             kernel_initializer=self.kernel_initializer,
             kernel_size=1,
         )
-        self.skip_out.build(self.value_branch.output_shape)
+        self.skip_out.build(self.value_branch.compute_output_shape(input_shape))
         self._trainable_weights.extend(self.skip_out.trainable_weights)
 
         super().build(input_shape)
