@@ -1,7 +1,7 @@
 from keras import layers
 from keras.models import Model
 
-from layers.visual_layers import residual_block
+from ..layers.visual_layers import ResidualBlock
 
 
 def res_net(
@@ -24,15 +24,14 @@ def res_net(
 
     for _ in range(depth):
         for i in range(blocks_per_layer):
-            pred = residual_block(
-                pred,
+            pred = ResidualBlock(
                 activation=activation,
                 bias_initializer=bias_initializer,
                 filters=filters,
                 kernel_initializer=kernel_initializer,
                 merge=residual_merge,
                 project=not bool(i),
-            )
+            )(pred)
         pred = layers.add([layers.MaxPool2D()(pred), layers.AvgPool2D()(pred)])
         filters *= 2
 
