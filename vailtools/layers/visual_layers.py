@@ -7,6 +7,7 @@ class ResidualBlock(layers.Layer):
     Implements the simple residual block discussed in:
         https://arxiv.org/abs/1512.03385
     """
+
     def __init__(
             self,
             activation='selu',
@@ -18,6 +19,7 @@ class ResidualBlock(layers.Layer):
             residual_projection=False,
             **kwargs,
     ):
+        super().__init__(**kwargs)
         self.activation = activation
         self.bias_initializer = bias_initializer
         self.filters = filters
@@ -26,34 +28,22 @@ class ResidualBlock(layers.Layer):
         self.padding = padding
         self.residual_projection = residual_projection
 
-        self.conv_1 = None
-        self.conv_2 = None
-        self.projection = None
-
-        super().__init__(**kwargs)
-
-    def build(self, input_shape):
         self.conv_1 = layers.Conv2D(
-            filters=self.filters,
-            kernel_size=self.kernel_size,
-            padding=self.padding,
-            kernel_initializer=self.kernel_initializer,
-            bias_initializer=self.bias_initializer,
             activation=self.activation,
-        )
-        self.conv_1.build(input_shape)
-        self._trainable_weights.extend(self.conv_1.trainable_weights)
-
-        self.conv_2 = layers.Conv2D(
+            bias_initializer=self.bias_initializer,
             filters=self.filters,
+            kernel_initializer=self.kernel_initializer,
             kernel_size=self.kernel_size,
             padding=self.padding,
-            kernel_initializer=self.kernel_initializer,
-            bias_initializer=self.bias_initializer,
         )
-        self.conv_2.build(self.conv_1.compute_output_shape(input_shape))
-        self._trainable_weights.extend(self.conv_2.trainable_weights)
-
+        self.conv_2 = layers.Conv2D(
+            activation=self.activation,
+            bias_initializer=self.bias_initializer,
+            filters=self.filters,
+            kernel_initializer=self.kernel_initializer,
+            kernel_size=self.kernel_size,
+            padding=self.padding,
+        )
         if self.residual_projection:
             self.projection = layers.Conv2D(
                 filters=self.filters,
@@ -61,10 +51,6 @@ class ResidualBlock(layers.Layer):
                 kernel_initializer=self.kernel_initializer,
                 bias_initializer=self.bias_initializer,
             )
-            self.projection.build(input_shape)
-            self._trainable_weights.extend(self.projection.trainable_weights)
-
-        super().build(input_shape)
 
     def call(self, inputs, **kwargs):
         pred = self.conv_1(inputs)
@@ -102,6 +88,7 @@ class ResidualBottleneckBlock(layers.Layer):
             residual_projection=False,
             **kwargs,
     ):
+        super().__init__(**kwargs)
         self.activation = activation
         self.bias_initializer = bias_initializer
         self.filters = filters
@@ -111,14 +98,6 @@ class ResidualBottleneckBlock(layers.Layer):
         self.padding = padding
         self.residual_projection = residual_projection
 
-        self.compress_conv = None
-        self.bottleneck_conv = None
-        self.expand_conv = None
-        self.projection = None
-
-        super().__init__(**kwargs)
-
-    def build(self, input_shape):
         self.compress_conv = layers.Conv2D(
             activation=self.activation,
             bias_initializer=self.bias_initializer,
@@ -126,9 +105,6 @@ class ResidualBottleneckBlock(layers.Layer):
             kernel_initializer=self.kernel_initializer,
             kernel_size=(1, 1),
         )
-        self.compress_conv.build(input_shape)
-        self._trainable_weights.extend(self.compress_conv.trainable_weights)
-        output_shape = self.compress_conv.compute_output_shape(input_shape)
 
         self.bottleneck_conv = layers.Conv2D(
             activation=self.activation,
@@ -138,10 +114,6 @@ class ResidualBottleneckBlock(layers.Layer):
             kernel_size=self.kernel_size,
             padding=self.padding,
         )
-        self.bottleneck_conv.build(output_shape)
-        self._trainable_weights.extend(self.bottleneck_conv.trainable_weights)
-        output_shape = self.bottleneck_conv.compute_output_shape(output_shape)
-
         self.expand_conv = layers.Conv2D(
             activation=self.activation,
             filters=self.filters,
@@ -149,9 +121,6 @@ class ResidualBottleneckBlock(layers.Layer):
             kernel_initializer=self.kernel_initializer,
             bias_initializer=self.bias_initializer,
         )
-        self.expand_conv.build(output_shape)
-        self._trainable_weights.extend(self.expand_conv.trainable_weights)
-
         if self.residual_projection:
             self.projection = layers.Conv2D(
                 filters=self.filters,
@@ -159,10 +128,6 @@ class ResidualBottleneckBlock(layers.Layer):
                 kernel_initializer=self.kernel_initializer,
                 bias_initializer=self.bias_initializer,
             )
-            self.projection.build(input_shape)
-            self._trainable_weights.extend(self.projection.trainable_weights)
-
-        super().build(input_shape)
 
     def call(self, inputs, **kwargs):
         pred = self.compress_conv(inputs)
@@ -183,9 +148,67 @@ class ResidualBottleneckBlock(layers.Layer):
         return tuple(output_shape)
 
 
+class DenseBlock(layers.Layer):
+    """
+    Implements the densely connected convolution block discussed in:
+        https://arxiv.org/abs/1608.06993
+    """
+
+    def __init__(
+            self,
+            activation='selu',
+            bias_initializer='zeros',
+            depth=2,
+            filters=16,
+            kernel_initializer='glorot_uniform',
+            kernel_size=(3, 3),
+            merge=layers.concatenate,
+            padding='same',
+            **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.activation = activation
+        self.bias_initializer = bias_initializer
+        self.depth = max(depth, 1)
+        self.filters = filters
+        self.kernel_initializer = kernel_initializer
+        self.kernel_size = kernel_size
+        self.merge = merge
+        self.padding = padding
+
+        self.layers = [
+            layers.Conv2D(
+                activation=self.activation,
+                bias_initializer=self.bias_initializer,
+                filters=self.filters,
+                kernel_initializer=self.kernel_initializer,
+                kernel_size=self.kernel_size,
+                padding=self.padding,
+            )
+            for _ in range(self.depth)
+        ]
+
+    def call(self, inputs, **kwargs):
+        output = inputs
+        for layer in self.layers:
+            output = self.merge([output, layer(output)])
+        return output
+
+    def compute_output_shape(self, input_shape):
+        output_shape = list(input_shape)
+        for layer in self.layers:
+            if self.merge == layers.concatenate:
+                output_shape[-1] += layer.compute_output_shape(output_shape)[-1]
+            elif self.merge == layers.add:
+                pass
+            else:
+                raise ValueError('Currently only keras.layers.concatenate and keras.layers.add are supported!')
+        return tuple(output_shape)
+
+
 # Todo: May want to add some validation to ensure that builtin Keras objects are
 #  not overwritten.
 get_custom_objects().update({
     x.__name__: x
-    for x in [ResidualBlock, ResidualBottleneckBlock]
+    for x in [ResidualBlock, ResidualBottleneckBlock, DenseBlock]
 })
