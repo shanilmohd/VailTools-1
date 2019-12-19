@@ -2,7 +2,6 @@
 Several architectures designed for image to image mappings.
 """
 
-
 from keras import layers as k_layers
 from keras.models import Model
 

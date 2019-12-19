@@ -19,7 +19,7 @@ def test_wave_net_integration(max_features=20000, maxlen=80, batch_size=32):
         input_shape=(maxlen,),
         flatten_output=True,
         output_channels=1,
-        )
+    )
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
     x_train = np.random.randint(0, max_features, (batch_size, maxlen))

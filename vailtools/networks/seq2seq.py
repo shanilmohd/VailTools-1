@@ -154,21 +154,21 @@ def snail_visual(
 
 
 def wave_net(
-    activation='tanh',
-    bias_initializer='zeros',
-    depth=10,
-    dilation_rates=None,
-    embedding_input_dim=None,
-    embedding_output_dim=24,
-    filters=16,
-    final_activation='softmax',
-    flatten_output=False,
-    gate_activation='sigmoid',
-    input_shape=(None, None),
-    kernel_initializer='glorot_uniform',
-    kernel_size=3,
-    output_channels=1,
-    tail_activation='relu',
+        activation='tanh',
+        bias_initializer='zeros',
+        depth=10,
+        dilation_rates=None,
+        embedding_input_dim=None,
+        embedding_output_dim=24,
+        filters=16,
+        final_activation='softmax',
+        flatten_output=False,
+        gate_activation='sigmoid',
+        input_shape=(None, None),
+        kernel_initializer='glorot_uniform',
+        kernel_size=3,
+        output_channels=1,
+        tail_activation='relu',
 ):
     """
     An implementation of WaveNet, described in https://arxiv.org/abs/1609.03499, using Keras.

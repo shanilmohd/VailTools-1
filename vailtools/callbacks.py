@@ -14,8 +14,10 @@ def cyclic_lr_schedule(lr0=0.2, total_steps=400, cycles=8):
 
     Returns: (Callable[[int, float], float])
     """
+
     def cyclic_lr_schedule_(step, lr=0.):
         return 0.5 * lr0 * (np.cos(np.pi * (step % np.ceil(total_steps / cycles)) / np.ceil(total_steps / cycles)) + 1)
+
     return cyclic_lr_schedule_
 
 
@@ -25,6 +27,7 @@ class CyclicLRScheduler(Callback):
         schedule: (Callable[[int, float], float]) Takes an epoch index (0 indexed), current learning rate and returns a new learning rate.
         verbose: (int) 0 -> quiet, 1 -> update messages.
     """
+
     def __init__(self, schedule=None, lr0=0.2, total_steps=400, cycles=8, verbose=0):
         super().__init__()
 

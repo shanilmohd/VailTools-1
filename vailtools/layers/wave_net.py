@@ -6,6 +6,7 @@ class WaveNetBlock(layers.Layer):
     Implements the basic building block of the WaveNet architecture:
         https://arxiv.org/abs/1609.03499
     """
+
     def __init__(
             self,
             activation='tanh',
@@ -13,8 +14,10 @@ class WaveNetBlock(layers.Layer):
             dilation_rate=1,
             filters=16,
             gate_activation='sigmoid',
+            gate_merge=layers.Multiply,
             kernel_initializer='glorot_uniform',
             kernel_size=3,
+            skip_merge=layers.Concatenate,
             **kwargs,
     ):
         """
@@ -72,15 +75,19 @@ class WaveNetBlock(layers.Layer):
             kernel_initializer=self.kernel_initializer,
             kernel_size=1,
         )
+        self.gate_merge = gate_merge()
+        self.skip_merge = skip_merge()
 
     def call(self, inputs, **kwargs):
         value = self.value_branch(inputs)
         gate = self.gate_branch(inputs)
-        gated_value = layers.multiply([value, gate])
+        gated_value = self.gate_merge([value, gate])
         skip_out = self.skip_out(gated_value)
-        return layers.concatenate([inputs, skip_out])
+        return self.skip_merge([inputs, skip_out])
 
     def compute_output_shape(self, input_shape):
-        output_shape = list(input_shape)
-        output_shape[-1] += self.filters
-        return tuple(output_shape)
+        value_shape = self.value_branch.compute_output_shape(input_shape)
+        gate_shape = self.gate_branch.compute_output_shape(input_shape)
+        gated_value_shape = self.gate_merge.compute_output_shape([value_shape, gate_shape])
+        skip_out_shape = self.skip_out.compute_output_shape(gated_value_shape)
+        return self.skip_merge.compute_output_shape([input_shape, skip_out_shape])

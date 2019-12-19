@@ -2,8 +2,8 @@
 Provides tools that may be applied to Keras models at test/evaluation time.
 """
 
-from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
+from keras.preprocessing.image import ImageDataGenerator
 
 
 def augmented_predictions(model, x, batch_size=32, noise_std=0.01, count=30, verbose=False):
@@ -66,6 +66,8 @@ def get_noise_func(noise_std):
 
     Returns: (Callable[[numpy.ndarray], numpy.ndarray])
     """
+
     def noise_func(img):
         return img + np.random.normal(0, noise_std, img.shape)
+
     return noise_func
