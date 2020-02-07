@@ -19,7 +19,7 @@ VERSION = 0.4
 
 # Required packages
 REQUIRED = [
-    'tensorflow', 'numpy'
+    'tensorflow>=2.0.0', 'numpy'
 ]
 
 # Optional packages
