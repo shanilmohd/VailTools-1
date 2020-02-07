@@ -1,0 +1,4 @@
+numpy
+pytest
+pytest-cov
+tensorflow>=2.0.0

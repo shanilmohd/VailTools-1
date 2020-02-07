@@ -18,9 +18,8 @@ REQUIRES_PYTHON = '>=3.6.0'
 VERSION = 0.4
 
 # Required packages
-REQUIRED = [
-    'tensorflow>=2.0.0', 'numpy'
-]
+with open('requirements.txt') as f:
+    REQUIRED = [line.strip() for line in f]
 
 # Optional packages
 EXTRAS = {}
