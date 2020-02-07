@@ -1,5 +1,5 @@
-import keras
 import numpy as np
+from tensorflow import keras
 
 from vailtools.layers import ResidualBlock, ResidualBottleneckBlock, DenseBlock, FractalBlock, DilationBlock
 

@@ -1,12 +1,11 @@
 """
-Several architectures designed for image to image mappings.
+Neural networks for learning mappings from images to images.
 """
 
-from keras import layers as k_layers
-from keras.models import Model
+from tensorflow.keras import layers as k_layers
+from tensorflow.keras.models import Model
 
 from .. import layers
-from .. import network_blocks
 
 
 def restrict_net(
@@ -400,14 +399,13 @@ def dilated_net(
     pred = k_layers.GaussianNoise(stddev=noise_std)(inputs)
 
     for _ in range(depth):
-        pred = network_blocks.dilation_block(
-            pred,
+        pred = layers.visual_layers.DilationBlock(
             activation=activation,
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
             merge=merge,
-        )
+        )(pred)
 
     pred = k_layers.BatchNormalization()(pred)
     pred = k_layers.Activation(activation)(pred)
@@ -479,14 +477,14 @@ def res_dilated_net(
 
     pred = k_layers.Conv2D(filters, (1, 1))(pred)
     for _ in range(depth):
-        pred = network_blocks.residual_dilation_block(
-            pred,
+        pred = layers.visual_layers.DilationBlock(
             activation=activation,
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
             merge=merge,
-        )
+            skip_connection=True,
+        )(pred)
 
     pred = k_layers.BatchNormalization()(pred)
     pred = k_layers.Activation(activation)(pred)

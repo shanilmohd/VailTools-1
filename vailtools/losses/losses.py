@@ -4,9 +4,9 @@ Provides loss functions suitable for training Keras models.
 
 from itertools import product
 
-import keras.backend as K
 import tensorflow as tf
-from keras.losses import mse, mae
+import tensorflow.keras.backend as K
+from tensorflow.keras.losses import mse, mae
 
 from .. import metrics
 

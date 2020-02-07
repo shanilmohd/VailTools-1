@@ -1,5 +1,5 @@
-from keras import layers
-from keras.models import Model
+from tensorflow.keras import layers
+from tensorflow.keras.models import Model
 
 from ..layers.visual_layers import ResidualBlock
 

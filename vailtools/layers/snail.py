@@ -4,10 +4,10 @@ architectures, which are intended to be used on meta-learning and reinforcement
 learning tasks.
 """
 
-import keras.backend as K
 import numpy as np
-from keras import layers
-from keras.utils.generic_utils import get_custom_objects
+import tensorflow.keras.backend as K
+from tensorflow.keras import layers
+from tensorflow.keras.utils import get_custom_objects
 
 
 class SnailAttentionBlock(layers.Layer):

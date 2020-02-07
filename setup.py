@@ -3,10 +3,10 @@
 
 import io
 import os
+import subprocess
 from pathlib import Path
 
 import setuptools
-
 
 # Package meta-data.
 NAME = 'vailtools'
@@ -19,7 +19,7 @@ VERSION = 0.4
 
 # Required packages
 REQUIRED = [
-    'keras', 'tensorflow', 'numpy'
+    'tensorflow', 'numpy'
 ]
 
 # Optional packages
@@ -45,6 +45,8 @@ else:
     about['__version__'] = VERSION
 
 # Ensure that Git submodules are correctly initialized
+subprocess.call('git submodule init && git submodule update', shell=True)
+
 # https://github.com/bermanmaxim/LovaszSoftmax
 p = Path(f'{here}/vailtools/losses/LovaszSoftmax/__init__.py')
 if not p.is_file():

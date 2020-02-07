@@ -1,5 +1,5 @@
-import keras
 import numpy as np
+from tensorflow import keras
 
 from vailtools.layers import SnailAttentionBlock, SnailDenseBlock, SnailTCBlock
 from vailtools.networks.seq2seq import snail_control

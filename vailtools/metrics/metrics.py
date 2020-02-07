@@ -1,7 +1,7 @@
 """
 Provides metrics suitable for monitoring and evaluating Keras models.
 """
-import keras.backend as K
+import tensorflow.keras.backend as K
 
 
 def iou_score(y_true, y_pred):

@@ -1,6 +1,6 @@
-from keras import layers
-from keras.utils.generic_utils import get_custom_objects
 import numpy as np
+from tensorflow.keras import layers
+from tensorflow.keras.utils import get_custom_objects
 
 
 class ResidualBlock(layers.Layer):
@@ -209,6 +209,7 @@ class SparseBlock(layers.Layer):
     Implements the sparsely connected convolution block described in:
         https://arxiv.org/abs/1801.05895
     """
+
     def __init__(
             self,
             activation='relu',
@@ -287,6 +288,7 @@ class FractalBlock(layers.Layer):
     Implements the fractal convolution block described in:
         https://arxiv.org/abs/1605.07648
     """
+
     def __init__(
             self,
             activation='relu',
@@ -416,6 +418,7 @@ class DilationBlock(layers.Layer):
         https://arxiv.org/abs/1710.02224
         https://arxiv.org/abs/1802.10062
     """
+
     def __init__(
             self,
             activation='selu',

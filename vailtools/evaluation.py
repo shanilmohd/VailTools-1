@@ -3,7 +3,7 @@ Provides tools that may be applied to Keras models at test/evaluation time.
 """
 
 import numpy as np
-from keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
 def augmented_predictions(model, x, batch_size=32, noise_std=0.01, count=30, verbose=False):

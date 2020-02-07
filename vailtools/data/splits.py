@@ -9,7 +9,6 @@ from pathlib import Path
 
 import numpy as np
 
-
 SplitIndices = namedtuple('SplitIndices', ['train', 'val', 'test'])
 
 

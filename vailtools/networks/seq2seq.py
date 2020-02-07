@@ -1,7 +1,7 @@
 from itertools import cycle
 
-from keras import layers
-from keras.models import Model
+from tensorflow.keras import layers
+from tensorflow.keras.models import Model
 
 from ..layers import SnailAttentionBlock, SnailTCBlock, WaveNetBlock
 
