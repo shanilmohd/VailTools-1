@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import io
 import os
 
@@ -16,9 +13,8 @@ REQUIRES_PYTHON = '>=3.6.0'
 VERSION = 0.4
 
 # Required packages
-REQUIRED = [
-    'keras', 'tensorflow', 'numpy'
-]
+with open('requirements.txt') as f:
+    REQUIRED = [x.strip() for x in f]
 
 # Optional packages
 EXTRAS = {}
