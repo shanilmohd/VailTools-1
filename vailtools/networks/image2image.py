@@ -6,7 +6,6 @@ from keras import layers as k_layers
 from keras.models import Model
 
 from .. import layers
-from .. import network_blocks
 
 
 def restrict_net(
@@ -291,8 +290,6 @@ def res_u_net(
             Specifies the dimensions of the input data, does not include the samples dimension.
         kernel_initializer: (str or Callable)
             Name or instance of a keras.initializers.Initializer.
-        merge: (keras.layers.layer)
-            Keras layer that merges the input and output branches of a residual block, usually keras.layers.Add.
         noise_std: (float)
             Standard deviation of an additive 0-mean Gaussian noise applied to network inputs.
         output_channels: (int)
@@ -400,14 +397,13 @@ def dilated_net(
     pred = k_layers.GaussianNoise(stddev=noise_std)(inputs)
 
     for _ in range(depth):
-        pred = network_blocks.dilation_block(
-            pred,
+        pred = layers.DilationBlock(
             activation=activation,
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
             merge=merge,
-        )
+        )(pred)
 
     pred = k_layers.BatchNormalization()(pred)
     pred = k_layers.Activation(activation)(pred)
@@ -479,14 +475,14 @@ def res_dilated_net(
 
     pred = k_layers.Conv2D(filters, (1, 1))(pred)
     for _ in range(depth):
-        pred = network_blocks.residual_dilation_block(
-            pred,
+        pred = layers.DilationBlock(
             activation=activation,
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
             merge=merge,
-        )
+            skip_connection=True,
+        )(pred)
 
     pred = k_layers.BatchNormalization()(pred)
     pred = k_layers.Activation(activation)(pred)
