@@ -3,10 +3,10 @@
 
 import io
 import os
+import subprocess
 from pathlib import Path
 
 import setuptools
-
 
 # Package meta-data.
 NAME = 'vailtools'
@@ -43,6 +43,9 @@ if not VERSION:
         exec(f.read(), about)
 else:
     about['__version__'] = VERSION
+
+# Ensure that Git submodules are correctly initialized
+subprocess.call('git submodule init && git submodule update', shell=True)
 
 # Ensure that Git submodules are correctly initialized
 # https://github.com/bermanmaxim/LovaszSoftmax
