@@ -3,8 +3,6 @@
 
 import io
 import os
-import subprocess
-from pathlib import Path
 
 import setuptools
 
@@ -43,25 +41,6 @@ if not VERSION:
         exec(f.read(), about)
 else:
     about['__version__'] = VERSION
-
-# Ensure that Git submodules are correctly initialized
-subprocess.call('git submodule init && git submodule update', shell=True)
-
-# Ensure that Git submodules are correctly initialized
-# https://github.com/bermanmaxim/LovaszSoftmax
-p = Path(f'{here}/vailtools/losses/LovaszSoftmax/__init__.py')
-if not p.is_file():
-    p.write_text('from .tensorflow.lovasz_losses_tf import lovasz_hinge, lovasz_softmax\n')
-
-# https://github.com/titu1994/keras-coordconv
-p = Path(f'{here}/vailtools/layers/coordconv/__init__.py')
-if not p.is_file():
-    p.write_text('from .coord import CoordinateChannel1D, CoordinateChannel2D, CoordinateChannel3D\n')
-
-# https://github.com/CyberZHG/keras-drop-block
-p = Path(f'{here}/vailtools/layers/dropblock/__init__.py')
-if not p.is_file():
-    p.write_text('from .keras_drop_block import DropBlock1D, DropBlock2D\n')
 
 setuptools.setup(
     name=NAME,
