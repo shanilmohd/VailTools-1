@@ -13,15 +13,15 @@ Vail Tools primarily targets Keras with the Tensorflow backend, though support f
 configurations may be expanded in the future.
 
 ## Contents
-| Name           | Description                                                                                      |
-| ---            | ---                                                                                              |
-| callbacks      | Specialized learning rate schedulers and other callbacks used by keras.models.Model.fit          |
-| data           | Data management utilities such as image tiling and data split generation.                        |
-| evaluation     | Utilities applied at test-time, such as test-time data augmentation.                             |
-| losses         | Loss functions implemented in Keras, Tensorflow, and Numpy.                                      |
-| metrics        | Metrics useful for monitoring training performance, implemented in Keras, Tensorflow, and Numpy. |
-| network_blocks | Building blocks for neural networks such as residual blocks, dense blocks, etc.                  |
-| networks       | Fully constructed and compiled Keras models.   
+| Name       | Description                                                                             |
+| ---        | ---                                                                                     |
+| callbacks  | Specialized learning rate schedulers and other callbacks used by keras.models.Model.fit |
+| data       | Data management utilities such as image tiling and data split generation.               |
+| evaluation | Utilities applied at test-time, such as test-time data augmentation.                    |
+| layers     | Building blocks for neural networks such as residual blocks, dense blocks, etc.         |
+| losses     | Loss functions implemented in Keras, Tensorflow, and Numpy.                             |
+| metrics    | Metrics useful for monitoring training performance.                                     |
+| networks   | Fully constructed and compiled Keras models.                                            |
 
 ## Requirements
 VaiL Tools has been tested with the following configuration, though it may function with a wider range of versions for certain packages.

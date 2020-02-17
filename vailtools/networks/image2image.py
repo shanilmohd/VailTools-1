@@ -290,8 +290,6 @@ def res_u_net(
             Specifies the dimensions of the input data, does not include the samples dimension.
         kernel_initializer: (str or Callable)
             Name or instance of a keras.initializers.Initializer.
-        merge: (keras.layers.layer)
-            Keras layer that merges the input and output branches of a residual block, usually keras.layers.Add.
         noise_std: (float)
             Standard deviation of an additive 0-mean Gaussian noise applied to network inputs.
         output_channels: (int)
@@ -303,8 +301,9 @@ def res_u_net(
     inputs = k_layers.Input(shape=input_shape)
     pred = k_layers.GaussianNoise(stddev=noise_std)(inputs)
 
-    if coord_features:
-        pred = layers.CoordinateChannel2D()(pred)
+    # TODO: Add back in when CoordinateChannel2D is ported to TF2
+    # if coord_features:
+    #     pred = layers.CoordinateChannel2D()(pred)
 
     # Restriction
     crosses = []
@@ -399,7 +398,7 @@ def dilated_net(
     pred = k_layers.GaussianNoise(stddev=noise_std)(inputs)
 
     for _ in range(depth):
-        pred = layers.visual_layers.DilationBlock(
+        pred = layers.DilationBlock(
             activation=activation,
             bias_initializer=bias_initializer,
             filters=filters,
@@ -477,7 +476,7 @@ def res_dilated_net(
 
     pred = k_layers.Conv2D(filters, (1, 1))(pred)
     for _ in range(depth):
-        pred = layers.visual_layers.DilationBlock(
+        pred = layers.DilationBlock(
             activation=activation,
             bias_initializer=bias_initializer,
             filters=filters,
