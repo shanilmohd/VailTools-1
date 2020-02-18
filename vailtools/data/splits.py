@@ -12,7 +12,7 @@ import numpy as np
 SplitIndices = namedtuple('SplitIndices', ['train', 'val', 'test'])
 
 
-def generate_splits(samples, train_frac=.6, val_frac=.2, test_frac=.2):
+def make_splits(samples, train_frac=.6, val_frac=.2, test_frac=.2):
     if train_frac is None:
         train_frac = 1. - (val_frac + test_frac)
     elif val_frac is None:
@@ -27,8 +27,8 @@ def generate_splits(samples, train_frac=.6, val_frac=.2, test_frac=.2):
 
     if train_frac + val_frac + test_frac != 1.:
         raise ValueError(
-            'Split fractions should sum to 1, but {} + {} + {} = {}!'.format(
-                train_frac, val_frac, test_frac, train_frac + val_frac + test_frac))
+            f'Split fractions should sum to 1, but {train_frac} + {val_frac} + {test_frac} = {train_frac + val_frac + test_frac}!'
+        )
 
     train_count = int(np.ceil(samples * train_frac))
     val_count = int(np.floor(samples * val_frac))
@@ -65,7 +65,7 @@ def split_data(
         process_func=lambda x, y: (x, y),
 ):
     if splits is None:
-        splits = generate_splits(len(x))
+        splits = make_splits(len(x))
     if save:
         save_splits(splits, f'{save_path}/{save_name}.npz')
     return (

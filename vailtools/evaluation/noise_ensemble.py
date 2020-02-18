@@ -6,7 +6,7 @@ import numpy as np
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
-def augmented_predictions(model, x, batch_size=32, noise_std=0.01, count=30, verbose=False):
+def noise_ensemble(model, x, batch_size=32, noise_std=0.01, count=30, verbose=False):
     """
     Implements test-time data augmentation using Gaussian noise for arbitrary Keras
     models that may be applied post-training without any additional model configuration.
