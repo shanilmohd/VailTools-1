@@ -358,7 +358,7 @@ def dilated_net(
         final_activation='sigmoid',
         input_shape=(None, None, None),
         kernel_initializer='glorot_uniform',
-        merge=k_layers.add,
+        merge=k_layers.Add,
         noise_std=0.1,
         output_channels=1,
 ):
@@ -435,7 +435,7 @@ def res_dilated_net(
         final_activation='sigmoid',
         input_shape=(None, None, None),
         kernel_initializer='glorot_uniform',
-        merge=k_layers.add,
+        merge=k_layers.Add,
         noise_std=0.1,
         output_channels=1,
 ):

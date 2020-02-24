@@ -11,7 +11,7 @@ def test_CyclicLRScheduler():
     model = keras.models.Sequential([
         keras.layers.Conv2D(32, kernel_size=3, padding='same', activation='relu'),
         keras.layers.Conv2D(32, kernel_size=3, padding='same', activation='relu'),
-        keras.layers.Conv2D(32, kernel_size=3, padding='same', activation='relu'),
+        keras.layers.Conv2D(10, kernel_size=3, padding='same', activation='relu'),
         keras.layers.GlobalAveragePooling2D(),
         keras.layers.Activation('softmax')
     ])
@@ -19,7 +19,7 @@ def test_CyclicLRScheduler():
 
     model.fit(
         train_x,
-        train_y,
+        keras.utils.to_categorical(train_y),
         epochs=5,
         callbacks=[CyclicLRScheduler(total_steps=5, cycles=1)],
     )

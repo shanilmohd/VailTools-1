@@ -12,7 +12,7 @@ def test_wave_net_block():
     m1.summary()
 
 
-def test_wave_net_integration(max_features=20000, maxlen=80, batch_size=32):
+def test_wave_net_integration(max_features=2048, maxlen=80, batch_size=32):
     model = wave_net(
         embedding_input_dim=max_features,
         final_activation='sigmoid',
