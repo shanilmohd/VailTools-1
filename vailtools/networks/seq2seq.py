@@ -49,7 +49,7 @@ def snail_mdp(
     pred = layers.LSTM(
         output_size,
         return_sequences=return_sequences,
-        activation=final_activation
+        activation=final_activation,
     )(pred)
     return Model(inputs=inputs, outputs=pred)
 
@@ -98,7 +98,7 @@ def snail_control(
     pred = layers.LSTM(
         output_size,
         return_sequences=return_sequences,
-        activation=final_activation
+        activation=final_activation,
     )(pred)
     return Model(inputs=inputs, outputs=pred)
 
@@ -147,7 +147,7 @@ def snail_visual(
     pred = layers.LSTM(
         output_size,
         return_sequences=return_sequences,
-        activation=final_activation
+        activation=final_activation,
     )(pred)
 
     return Model(inputs=inputs, outputs=pred)
@@ -164,10 +164,12 @@ def wave_net(
         final_activation='softmax',
         flatten_output=False,
         gate_activation='sigmoid',
+        gate_merge=layers.Multiply,
         input_shape=(None, None),
         kernel_initializer='glorot_uniform',
         kernel_size=3,
         output_channels=1,
+        skip_merge=layers.Concatenate,
         tail_activation='relu',
 ):
     """
@@ -198,6 +200,9 @@ def wave_net(
         gate_activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
             Activation applied to the gate portion of each gated activation unit.
+        gate_merge: tensorflow.keras.layers.Merge
+            Layer that merges the forget gate and value branch.
+            Common options are Add, Concatenate, Maximum, and Multiply.
         input_shape: (tuple[int or None])
             Specifies the time steps and features dimensions of the input data, does not include the samples dimension.
         kernel_initializer: (str or Callable)
@@ -207,6 +212,9 @@ def wave_net(
             Name or instance of a keras optimizer that will be used for training.
         output_channels: (int)
             Number of output channels/features.
+        skip_merge: tensorflow.keras.layers.Merge
+            Layer that handles skip connection merge behavior.
+            Common options are Add, Concatenate, Maximum, and Multiply.
         tail_activation: (str or Callable)
             Name of a keras activation function or an instance of a keras/Tensorflow activation function.
 
@@ -232,8 +240,10 @@ def wave_net(
             dilation_rate=dilation_rate,
             filters=filters,
             gate_activation=gate_activation,
+            gate_merge=gate_merge,
             kernel_initializer=kernel_initializer,
             kernel_size=kernel_size,
+            skip_merge=skip_merge,
         )(pred)
 
     pred = layers.BatchNormalization()(pred)

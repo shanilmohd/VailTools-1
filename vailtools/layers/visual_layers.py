@@ -53,14 +53,14 @@ class ResidualBlock(layers.Layer):
                 kernel_initializer=self.kernel_initializer,
                 bias_initializer=self.bias_initializer,
             )
-        self.final_merge = merge()
+        self.merge = merge()
 
     def call(self, inputs, **kwargs):
         pred = self.conv_1(inputs)
         pred = self.conv_2(pred)
         if self.residual_projection:
             inputs = self.projection(inputs)
-        return self.final_merge([inputs, pred])
+        return self.merge([inputs, pred])
 
 
 class ResidualBottleneckBlock(layers.Layer):
@@ -122,7 +122,7 @@ class ResidualBottleneckBlock(layers.Layer):
                 kernel_initializer=self.kernel_initializer,
                 bias_initializer=self.bias_initializer,
             )
-        self.final_merge = merge()
+        self.merge = merge()
 
     def call(self, inputs, **kwargs):
         pred = self.compress_conv(inputs)
@@ -130,7 +130,7 @@ class ResidualBottleneckBlock(layers.Layer):
         pred = self.expand_conv(pred)
         if self.residual_projection:
             inputs = self.projection(inputs)
-        return self.final_merge([inputs, pred])
+        return self.merge([inputs, pred])
 
 
 class DenseBlock(layers.Layer):

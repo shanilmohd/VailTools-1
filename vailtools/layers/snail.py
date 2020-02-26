@@ -58,6 +58,7 @@ class SnailDenseBlock(layers.Layer):
         super().__init__(**kwargs)
         self.filters = filters
         self.dilation_rate = dilation_rate
+        self.gate_merge = gate_merge()
         self.value_branch = layers.Conv1D(
             filters=self.filters,
             kernel_size=2,
@@ -76,7 +77,7 @@ class SnailDenseBlock(layers.Layer):
 
     def call(self, inputs, **kwargs):
         activations = layers.Multiply()([self.value_branch(inputs), self.gate_branch(inputs)])
-        return layers.Concatenate()([activations, inputs])
+        return self.gate_merge([activations, inputs])
 
 
 class SnailTCBlock(layers.Layer):

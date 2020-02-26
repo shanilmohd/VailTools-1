@@ -133,6 +133,7 @@ def restrict_net(
 def u_net(
         activation='selu',
         bias_initializer='zeros',
+        cross_merge=k_layers.Concatenate,
         depth=4,
         filters=16,
         final_activation='selu',
@@ -157,6 +158,9 @@ def u_net(
             Applied throughout the network, except for the final activation.
         bias_initializer: (str or Callable)
             Name or instance of a keras.initializers.Initializer.
+        cross_merge: tensorflow.keras.layers.Merge
+            Layer that merges the cross connections into the second half of the U-Net.
+            Common options are Add, Concatenate, Maximum, and Multiply.
         depth: (int)
             Number of levels used in the construction of the restrictive/reconstituting paths.
         filters: (int)
@@ -223,7 +227,7 @@ def u_net(
             padding='same',
         )(pred)
 
-        pred = k_layers.concatenate([pred, cross])
+        pred = cross_merge()([pred, cross])
         pred = k_layers.BatchNormalization()(pred)
         pred = k_layers.Activation(activation)(pred)
         pred = k_layers.Conv2D(
@@ -260,6 +264,7 @@ def res_u_net(
         activation='selu',
         bias_initializer='zeros',
         coord_features=False,
+        cross_merge=k_layers.Concatenate,
         depth=4,
         filters=16,
         final_activation='selu',
@@ -267,6 +272,7 @@ def res_u_net(
         kernel_initializer='glorot_uniform',
         noise_std=0.1,
         output_channels=1,
+        residual_merge=k_layers.Add,
 ):
     """A U-Net with residual blocks at each level.
 
@@ -279,6 +285,9 @@ def res_u_net(
         coord_features: (bool)
             Adds coordinate feature channels to the input, allowing the network
             to better handle spatially varying relationships.
+        cross_merge: tensorflow.keras.layers.Merge
+            Layer that merges the cross connections into the second half of the U-Net.
+            Common options are Add, Concatenate, Maximum, and Multiply.
         depth: (int)
             Number of levels used in the construction of the restrictive/reconstituting paths.
         filters: (int)
@@ -294,6 +303,9 @@ def res_u_net(
             Standard deviation of an additive 0-mean Gaussian noise applied to network inputs.
         output_channels: (int)
             Number of output channels/features.
+        residual_merge: tensorflow.keras.layers.Merge
+            Layer that merges the residual connections of residual blocks.
+            Common options are Add, Concatenate, Maximum, and Multiply.
 
     Returns: (keras.models.Model)
         A compiled and ready-to-use Residual U-Net.
@@ -313,6 +325,7 @@ def res_u_net(
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
+            merge=residual_merge,
             residual_projection=True,
         )(pred)
 
@@ -326,6 +339,7 @@ def res_u_net(
         bias_initializer=bias_initializer,
         filters=filters,
         kernel_initializer=kernel_initializer,
+        merge=residual_merge,
         residual_projection=True,
     )(pred)
 
@@ -335,12 +349,13 @@ def res_u_net(
         filters //= 2
         pred = k_layers.Conv2D(filters, (3, 3), padding='same')(pred)
 
-        pred = k_layers.concatenate([pred, cross])
+        pred = cross_merge()([pred, cross])
         pred = layers.ResidualBlock(
             activation=activation,
             bias_initializer=bias_initializer,
             filters=filters,
             kernel_initializer=kernel_initializer,
+            merge=residual_merge,
             residual_projection=True,
         )(pred)
 
