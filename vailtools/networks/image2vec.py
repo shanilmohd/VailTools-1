@@ -17,7 +17,7 @@ def res_net(
         kernel_initializer='glorot_uniform',
         noise_std=0.,
         num_classes=10,
-        residual_merge=layers.add,
+        residual_merge=layers.Add,
 ):
     inputs = layers.Input(shape=input_shape)
     pred = layers.GaussianNoise(stddev=noise_std)(inputs)
@@ -30,7 +30,7 @@ def res_net(
                 filters=filters,
                 kernel_initializer=kernel_initializer,
                 merge=residual_merge,
-                project=not bool(i),
+                residual_projection=not bool(i),
             )(pred)
         pred = layers.add([layers.MaxPool2D()(pred), layers.AvgPool2D()(pred)])
         filters *= 2

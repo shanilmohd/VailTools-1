@@ -3,11 +3,12 @@ from tensorflow.keras.datasets import mnist
 
 from vailtools.callbacks import CyclicLRScheduler
 
+(train_x, train_y), _ = mnist.load_data()
+train_x = train_x[..., None].astype(float)
+train_x, train_y = train_x[:2048], train_y[:2048]
 
-def test_CyclicLRScheduler():
-    (train_x, train_y), _ = mnist.load_data()
-    train_x = train_x[..., None].astype(float)
 
+def test_cyclic_lr_scheduler():
     model = keras.models.Sequential([
         keras.layers.Conv2D(32, kernel_size=3, padding='same', activation='relu'),
         keras.layers.Conv2D(32, kernel_size=3, padding='same', activation='relu'),
