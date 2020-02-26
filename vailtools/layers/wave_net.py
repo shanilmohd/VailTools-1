@@ -86,19 +86,11 @@ class WaveNetBlock(layers.Layer):
         skip_out = self.skip_out(gated_value)
         return self.skip_merge([inputs, skip_out])
 
-    def compute_output_shape(self, input_shape):
-        value_shape = self.value_branch.compute_output_shape(input_shape)
-        gate_shape = self.gate_branch.compute_output_shape(input_shape)
-        gated_value_shape = self.gate_merge.compute_output_shape([value_shape, gate_shape])
-        skip_out_shape = self.skip_out.compute_output_shape(gated_value_shape)
-        return self.skip_merge.compute_output_shape([input_shape, skip_out_shape])
-
 
 # Register custom Keras objects
 # Should prevent the end user from needing to manually declare custom objects
 # when saving and loading models made by or using VaiLTools
-# Todo: May want to add some validation to ensure that builtin Keras objects are
-#  not overwritten.
+# Todo: May want to ensure that builtin objects are not overwritten.
 get_custom_objects().update({
     x.__name__: x
     for x in [WaveNetBlock]

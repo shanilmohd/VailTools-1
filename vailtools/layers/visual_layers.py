@@ -62,13 +62,6 @@ class ResidualBlock(layers.Layer):
             inputs = self.projection(inputs)
         return self.final_merge([inputs, pred])
 
-    def compute_output_shape(self, input_shape):
-        shape_1 = self.conv_1.compute_output_shape(input_shape)
-        shape_2 = self.conv_2.compute_output_shape(shape_1)
-        if self.residual_projection:
-            input_shape = self.projection.compute_output_shape(input_shape)
-        return self.final_merge.compute_output_shape([input_shape, shape_2])
-
 
 class ResidualBottleneckBlock(layers.Layer):
     """
@@ -139,14 +132,6 @@ class ResidualBottleneckBlock(layers.Layer):
             inputs = self.projection(inputs)
         return self.final_merge([inputs, pred])
 
-    def compute_output_shape(self, input_shape):
-        shape_1 = self.compress_conv.compute_output_shape(input_shape)
-        shape_2 = self.bottleneck_conv.compute_output_shape(shape_1)
-        shape_3 = self.expand_conv.compute_output_shape(shape_2)
-        if self.residual_projection:
-            input_shape = self.projection.compute_output_shape(input_shape)
-        return self.final_merge.compute_output_shape([input_shape, shape_3])
-
 
 class DenseBlock(layers.Layer):
     """
@@ -193,15 +178,6 @@ class DenseBlock(layers.Layer):
         for layer in self.layers:
             output = self.merge([output, layer(output)])
         return output
-
-    def compute_output_shape(self, input_shape):
-        output_shape = input_shape
-        for layer in self.layers:
-            output_shape = self.merge.compute_output_shape([
-                output_shape,
-                layer.compute_output_shape(output_shape),
-            ])
-        return output_shape
 
 
 class SparseBlock(layers.Layer):
@@ -271,16 +247,6 @@ class SparseBlock(layers.Layer):
             pred = self.layers[i](pred)
             inputs.append(pred)
         return pred
-
-    def compute_output_shape(self, input_shape):
-        pred_shape = input_shape
-        input_shapes = [input_shape]
-        for i in range(self.depth):
-            inds = [-(2 ** j) for j in range(1 + int(np.log2(i + 1)))]
-            pred_shape = self.merge.compute_output_shape([input_shapes[ind] for ind in inds])
-            pred_shape = self.layers[i].compute_output_shape(pred_shape)
-            input_shapes.append(pred_shape)
-        return pred_shape
 
 
 class FractalBlock(layers.Layer):
@@ -383,32 +349,6 @@ class FractalBlock(layers.Layer):
             branch_2 = layers[-1](inputs)
             return merges[-1]([branch_1, branch_2])
 
-    def compute_output_shape(self, input_shape, layers=None, merges=None):
-        if not layers and not merges:
-            layers = self.layers
-            merges = self.merges
-
-        if (len(layers) == 3) and (len(merges) == 1):
-            branch_1_shape = layers[0].compute_output_shape(input_shape)
-            branch_1_shape = layers[1].compute_output_shape(branch_1_shape)
-            branch_2_shape = layers[2].compute_output_shape(input_shape)
-            return merges[0].compute_output_shape([branch_1_shape, branch_2_shape])
-        else:
-            layer_split = (len(layers) - 1) // 2
-            merge_split = (len(merges) - 1) // 2
-            branch_1_shape = self.compute_output_shape(
-                input_shape,
-                layers=layers[:layer_split],
-                merges=merges[:merge_split],
-            )
-            branch_1_shape = self.compute_output_shape(
-                branch_1_shape,
-                layers=layers[layer_split:-1],
-                merges=merges[merge_split:-1],
-            )
-            branch_2_shape = layers[-1].compute_output_shape(input_shape)
-            return merges[-1].compute_output_shape([branch_1_shape, branch_2_shape])
-
 
 class DilationBlock(layers.Layer):
     """
@@ -480,18 +420,11 @@ class DilationBlock(layers.Layer):
             preds = [inputs] + preds
         return self.merge(preds)
 
-    def compute_output_shape(self, input_shape):
-        pred_shapes = [
-            layer.compute_output_shape(input_shape)
-            for layer in self.layers
-        ]
-        if self.skip_connection:
-            pred_shapes = [input_shape] + pred_shapes
-        return self.merge.compute_output_shape(pred_shapes)
 
-
-# Todo: May want to add some validation to ensure that builtin Keras objects are
-#  not overwritten.
+# Register custom Keras objects
+# Should prevent the end user from needing to manually declare custom objects
+# when saving and loading models made by or using VaiLTools
+# Todo: May want to ensure that builtin objects are not overwritten.
 get_custom_objects().update({
     x.__name__: x
     for x in [ResidualBlock, ResidualBottleneckBlock, DenseBlock, FractalBlock, DilationBlock]
