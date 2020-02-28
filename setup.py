@@ -1,11 +1,10 @@
-import io
-import os
+import pathlib
 
 import setuptools
 
 # Package meta-data.
 NAME = 'vailtools'
-DESCRIPTION = 'Components, tools, and utilities for building, training, and testing artificial neural networks in Python.'
+DESCRIPTION = 'Components and tools for building, training, and evaluating artificial neural networks in Python.'
 URL = 'https://gitlab.com/vail-uvm/vail-tools'
 EMAIL = 'vail.csds@gmail.com'
 AUTHOR = 'Vermont Artificial Intelligence Laboratory'
@@ -20,12 +19,12 @@ with open('requirements.txt') as f:
 EXTRAS = {}
 
 # Path to package top-level
-here = os.path.abspath(os.path.dirname(__file__))
+here = pathlib.Path()
 
 # Import the README and use it as the long-description.
 # Note: this will only work if 'README.md' is present in your MANIFEST.in file!
 try:
-    with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
+    with open(here / 'README.md', encoding='utf-8') as f:
         long_description = '\n' + f.read()
 except FileNotFoundError:
     long_description = DESCRIPTION
@@ -33,7 +32,7 @@ except FileNotFoundError:
 # Load the package's __version__.py module as a dictionary.
 about = {}
 if not VERSION:
-    with open(os.path.join(here, NAME, '__version__.py')) as f:
+    with open(here / NAME / '__version__.py') as f:
         exec(f.read(), about)
 else:
     about['__version__'] = VERSION
@@ -59,7 +58,7 @@ setuptools.setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
     ],
 )
