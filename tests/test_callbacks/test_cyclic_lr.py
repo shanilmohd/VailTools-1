@@ -9,14 +9,16 @@ train_x, train_y = train_x[:2048], train_y[:2048]
 
 
 def test_cyclic_lr_scheduler():
-    model = keras.models.Sequential([
-        keras.layers.Conv2D(32, kernel_size=3, padding='same', activation='relu'),
-        keras.layers.Conv2D(32, kernel_size=3, padding='same', activation='relu'),
-        keras.layers.Conv2D(10, kernel_size=3, padding='same', activation='relu'),
-        keras.layers.GlobalAveragePooling2D(),
-        keras.layers.Activation('softmax')
-    ])
-    model.compile(loss='categorical_crossentropy', optimizer='adam')
+    model = keras.models.Sequential(
+        [
+            keras.layers.Conv2D(32, kernel_size=3, padding="same", activation="relu"),
+            keras.layers.Conv2D(32, kernel_size=3, padding="same", activation="relu"),
+            keras.layers.Conv2D(10, kernel_size=3, padding="same", activation="relu"),
+            keras.layers.GlobalAveragePooling2D(),
+            keras.layers.Activation("softmax"),
+        ]
+    )
+    model.compile(loss="categorical_crossentropy", optimizer="adam")
 
     model.fit(
         train_x,

@@ -9,15 +9,15 @@ from .. import layers
 
 
 def restrict_net(
-        activation='selu',
-        bias_initializer='zeros',
-        depth=4,
-        filters=16,
-        final_activation='selu',
-        input_shape=(None, None, None),
-        kernel_initializer='glorot_uniform',
-        noise_std=0.1,
-        output_channels=1,
+    activation="selu",
+    bias_initializer="zeros",
+    depth=4,
+    filters=16,
+    final_activation="selu",
+    input_shape=(None, None, None),
+    kernel_initializer="glorot_uniform",
+    noise_std=0.1,
+    output_channels=1,
 ):
     """A U-Net without skip connections.
 
@@ -58,7 +58,7 @@ def restrict_net(
             filters=filters,
             kernel_initializer=kernel_initializer,
             kernel_size=(3, 3),
-            padding='same',
+            padding="same",
         )(pred)
 
         pred = k_layers.BatchNormalization()(pred)
@@ -68,7 +68,7 @@ def restrict_net(
             filters=filters,
             kernel_initializer=kernel_initializer,
             kernel_size=(3, 3),
-            padding='same',
+            padding="same",
         )(pred)
 
         pred = k_layers.MaxPool2D()(pred)
@@ -82,7 +82,7 @@ def restrict_net(
         filters=filters,
         kernel_initializer=kernel_initializer,
         kernel_size=(3, 3),
-        padding='same',
+        padding="same",
     )(pred)
 
     # Reconstitution
@@ -94,7 +94,7 @@ def restrict_net(
             filters=filters,
             kernel_initializer=kernel_initializer,
             kernel_size=(3, 3),
-            padding='same',
+            padding="same",
         )(pred)
 
         pred = k_layers.BatchNormalization()(pred)
@@ -104,7 +104,7 @@ def restrict_net(
             filters=filters,
             kernel_initializer=kernel_initializer,
             kernel_size=(3, 3),
-            padding='same',
+            padding="same",
         )(pred)
 
         pred = k_layers.BatchNormalization()(pred)
@@ -114,7 +114,7 @@ def restrict_net(
             filters=filters,
             kernel_initializer=kernel_initializer,
             kernel_size=(3, 3),
-            padding='same',
+            padding="same",
         )(pred)
 
     # Ensure the correct number of output channels and apply the final activation
@@ -123,7 +123,7 @@ def restrict_net(
         filters=output_channels,
         kernel_initializer=kernel_initializer,
         kernel_size=(1, 1),
-        padding='same',
+        padding="same",
     )(pred)
     pred = k_layers.BatchNormalization()(pred)
     pred = k_layers.Activation(final_activation)(pred)
@@ -131,16 +131,16 @@ def restrict_net(
 
 
 def u_net(
-        activation='selu',
-        bias_initializer='zeros',
-        cross_merge=k_layers.Concatenate,
-        depth=4,
-        filters=16,
-        final_activation='selu',
-        input_shape=(None, None, None),
-        kernel_initializer='glorot_uniform',
-        noise_std=0.1,
-        output_channels=1,
+    activation="selu",
+    bias_initializer="zeros",
+    cross_merge=k_layers.Concatenate,
+    depth=4,
+    filters=16,
+    final_activation="selu",
+    input_shape=(None, None, None),
+    kernel_initializer="glorot_uniform",
+    noise_std=0.1,
+    output_channels=1,
 ):
     """A Keras implementation of the U-Net architecture.
      See https://arxiv.org/pdf/1505.04597.pdf for details.
@@ -193,12 +193,12 @@ def u_net(
             filters=filters,
             kernel_initializer=kernel_initializer,
             kernel_size=(3, 3),
-            padding='same',
+            padding="same",
         )(pred)
 
         pred = k_layers.BatchNormalization()(pred)
         pred = k_layers.Activation(activation)(pred)
-        pred = k_layers.Conv2D(filters, (3, 3), padding='same')(pred)
+        pred = k_layers.Conv2D(filters, (3, 3), padding="same")(pred)
 
         crosses.append(pred)
 
@@ -212,7 +212,7 @@ def u_net(
         filters=filters,
         kernel_initializer=kernel_initializer,
         kernel_size=(3, 3),
-        padding='same',
+        padding="same",
     )(pred)
 
     # Reconstitution
@@ -224,7 +224,7 @@ def u_net(
             filters=filters,
             kernel_initializer=kernel_initializer,
             kernel_size=(3, 3),
-            padding='same',
+            padding="same",
         )(pred)
 
         pred = cross_merge()([pred, cross])
@@ -235,7 +235,7 @@ def u_net(
             filters=filters,
             kernel_initializer=kernel_initializer,
             kernel_size=(3, 3),
-            padding='same',
+            padding="same",
         )(pred)
 
         pred = k_layers.BatchNormalization()(pred)
@@ -245,7 +245,7 @@ def u_net(
             filters=filters,
             kernel_initializer=kernel_initializer,
             kernel_size=(3, 3),
-            padding='same',
+            padding="same",
         )(pred)
 
     pred = k_layers.Conv2D(
@@ -253,7 +253,7 @@ def u_net(
         filters=output_channels,
         kernel_initializer=kernel_initializer,
         kernel_size=(1, 1),
-        padding='same',
+        padding="same",
     )(pred)
     pred = k_layers.BatchNormalization()(pred)
     pred = k_layers.Activation(final_activation)(pred)
@@ -261,18 +261,18 @@ def u_net(
 
 
 def res_u_net(
-        activation='selu',
-        bias_initializer='zeros',
-        coord_features=False,
-        cross_merge=k_layers.Concatenate,
-        depth=4,
-        filters=16,
-        final_activation='selu',
-        input_shape=(None, None, None),
-        kernel_initializer='glorot_uniform',
-        noise_std=0.1,
-        output_channels=1,
-        residual_merge=k_layers.Add,
+    activation="selu",
+    bias_initializer="zeros",
+    coord_features=False,
+    cross_merge=k_layers.Concatenate,
+    depth=4,
+    filters=16,
+    final_activation="selu",
+    input_shape=(None, None, None),
+    kernel_initializer="glorot_uniform",
+    noise_std=0.1,
+    output_channels=1,
+    residual_merge=k_layers.Add,
 ):
     """A U-Net with residual blocks at each level.
 
@@ -347,7 +347,7 @@ def res_u_net(
     for cross in crosses[::-1]:
         pred = k_layers.UpSampling2D()(pred)
         filters //= 2
-        pred = k_layers.Conv2D(filters, (3, 3), padding='same')(pred)
+        pred = k_layers.Conv2D(filters, (3, 3), padding="same")(pred)
 
         pred = cross_merge()([pred, cross])
         pred = layers.ResidualBlock(
@@ -366,16 +366,16 @@ def res_u_net(
 
 
 def dilated_net(
-        activation='selu',
-        bias_initializer='zeros',
-        depth=3,
-        filters=32,
-        final_activation='sigmoid',
-        input_shape=(None, None, None),
-        kernel_initializer='glorot_uniform',
-        merge=k_layers.Add,
-        noise_std=0.1,
-        output_channels=1,
+    activation="selu",
+    bias_initializer="zeros",
+    depth=3,
+    filters=32,
+    final_activation="sigmoid",
+    input_shape=(None, None, None),
+    kernel_initializer="glorot_uniform",
+    merge=k_layers.Add,
+    noise_std=0.1,
+    output_channels=1,
 ):
     """A neural network primarily composed of dilated convolutions.
     Uses exponentially dilated convolutions to operate on multi-scale features.
@@ -428,7 +428,7 @@ def dilated_net(
         filters=filters,
         kernel_initializer=kernel_initializer,
         kernel_size=(3, 3),
-        padding='same',
+        padding="same",
     )(pred)
 
     pred = k_layers.Conv2D(
@@ -443,16 +443,16 @@ def dilated_net(
 
 
 def res_dilated_net(
-        activation='selu',
-        bias_initializer='zeros',
-        depth=3,
-        filters=32,
-        final_activation='sigmoid',
-        input_shape=(None, None, None),
-        kernel_initializer='glorot_uniform',
-        merge=k_layers.Add,
-        noise_std=0.1,
-        output_channels=1,
+    activation="selu",
+    bias_initializer="zeros",
+    depth=3,
+    filters=32,
+    final_activation="sigmoid",
+    input_shape=(None, None, None),
+    kernel_initializer="glorot_uniform",
+    merge=k_layers.Add,
+    noise_std=0.1,
+    output_channels=1,
 ):
     """A neural network primarily composed of dilated convolutions.
     Uses exponentially dilated convolutions to operate on multi-scale features.
@@ -507,7 +507,7 @@ def res_dilated_net(
         filters=filters,
         kernel_initializer=kernel_initializer,
         kernel_size=(3, 3),
-        padding='same',
+        padding="same",
     )(pred)
 
     pred = k_layers.Conv2D(

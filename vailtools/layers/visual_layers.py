@@ -10,16 +10,16 @@ class ResidualBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation='relu',
-            bias_initializer='zeros',
-            filters=16,
-            kernel_initializer='glorot_uniform',
-            kernel_size=(3, 3),
-            merge=layers.Concatenate,
-            padding='same',
-            residual_projection=False,
-            **kwargs,
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Concatenate,
+        padding="same",
+        residual_projection=False,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.activation = activation
@@ -70,17 +70,17 @@ class ResidualBottleneckBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation='relu',
-            bias_initializer='zeros',
-            filters=16,
-            kernel_initializer='glorot_uniform',
-            kernel_size=(3, 3),
-            merge=layers.Concatenate,
-            neck_filters=None,
-            padding='same',
-            residual_projection=False,
-            **kwargs,
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Concatenate,
+        neck_filters=None,
+        padding="same",
+        residual_projection=False,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.activation = activation
@@ -140,16 +140,16 @@ class DenseBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation='relu',
-            bias_initializer='zeros',
-            depth=2,
-            filters=16,
-            kernel_initializer='glorot_uniform',
-            kernel_size=(3, 3),
-            merge=layers.Concatenate,
-            padding='same',
-            **kwargs,
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        depth=2,
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Concatenate,
+        padding="same",
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.activation = activation
@@ -187,16 +187,16 @@ class SparseBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation='relu',
-            bias_initializer='zeros',
-            depth=4,
-            filters=16,
-            kernel_initializer='glorot_uniform',
-            kernel_size=(3, 3),
-            merge=layers.Concatenate,
-            padding='same',
-            **kwargs,
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        depth=4,
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Concatenate,
+        padding="same",
+        **kwargs,
     ):
         """
         Args:
@@ -256,16 +256,16 @@ class FractalBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation='relu',
-            bias_initializer='zeros',
-            depth=4,
-            filters=16,
-            kernel_initializer='glorot_uniform',
-            kernel_size=(3, 3),
-            merge=layers.Concatenate,
-            padding='same',
-            **kwargs,
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        depth=4,
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Concatenate,
+        padding="same",
+        **kwargs,
     ):
         """
         Args:
@@ -306,10 +306,7 @@ class FractalBlock(layers.Layer):
             )
             for _ in range(self.get_layer_count(self.depth))
         ]
-        self.merges = [
-            merge()
-            for _ in range(self.get_merge_count(self.depth))
-        ]
+        self.merges = [merge() for _ in range(self.get_merge_count(self.depth))]
 
     def get_layer_count(self, depth):
         if depth == 1:
@@ -337,14 +334,10 @@ class FractalBlock(layers.Layer):
             layer_split = (len(layers) - 1) // 2
             merge_split = (len(merges) - 1) // 2
             branch_1 = self.call(
-                inputs,
-                layers=layers[:layer_split],
-                merges=merges[:merge_split],
+                inputs, layers=layers[:layer_split], merges=merges[:merge_split],
             )
             branch_1 = self.call(
-                branch_1,
-                layers=layers[layer_split:-1],
-                merges=merges[merge_split:-1],
+                branch_1, layers=layers[layer_split:-1], merges=merges[merge_split:-1],
             )
             branch_2 = layers[-1](inputs)
             return merges[-1]([branch_1, branch_2])
@@ -360,17 +353,17 @@ class DilationBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation='selu',
-            bias_initializer='zeros',
-            dilations=None,
-            filters=16,
-            kernel_initializer='glorot_uniform',
-            kernel_size=(3, 3),
-            merge=layers.Add,
-            padding='same',
-            skip_connection=False,
-            **kwargs,
+        self,
+        activation="selu",
+        bias_initializer="zeros",
+        dilations=None,
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Add,
+        padding="same",
+        skip_connection=False,
+        **kwargs,
     ):
         """
         Args:
@@ -425,7 +418,15 @@ class DilationBlock(layers.Layer):
 # Should prevent the end user from needing to manually declare custom objects
 # when saving and loading models made by or using VaiLTools
 # Todo: May want to ensure that builtin objects are not overwritten.
-get_custom_objects().update({
-    x.__name__: x
-    for x in [ResidualBlock, ResidualBottleneckBlock, DenseBlock, FractalBlock, DilationBlock]
-})
+get_custom_objects().update(
+    {
+        x.__name__: x
+        for x in [
+            ResidualBlock,
+            ResidualBottleneckBlock,
+            DenseBlock,
+            FractalBlock,
+            DilationBlock,
+        ]
+    }
+)

@@ -14,9 +14,7 @@ import numpy as np
 
 
 def image_to_tiles(
-        image,
-        window_shape=np.array((512, 512)),
-        step=None,
+    image, window_shape=np.array((512, 512)), step=None,
 ):
     """
     Cuts an image into a stack of tiles where each tile has spatial dimensions,
@@ -37,23 +35,23 @@ def image_to_tiles(
     if step is None:
         step = window_shape.copy()
     if np.any(image_shape < window_shape):
-        raise ValueError(f'All image dimensions, {image_shape}, must be greater'
-                         f' than all window dimensions, {window_shape}!')
+        raise ValueError(
+            f"All image dimensions, {image_shape}, must be greater"
+            f" than all window dimensions, {window_shape}!"
+        )
     slices_gen = generate_tile_slices(
-        image_shape=image_shape,
-        window_shape=window_shape,
-        step=step,
+        image_shape=image_shape, window_shape=window_shape, step=step,
     )
     tiles = [image[slices] for slices in slices_gen]
     return np.stack(tiles)
 
 
 def tiles_to_image(
-        tiles,
-        image_shape=np.array((904, 1224)),
-        window_shape=np.array((512, 512)),
-        step=None,
-        dtype=float
+    tiles,
+    image_shape=np.array((904, 1224)),
+    window_shape=np.array((512, 512)),
+    step=None,
+    dtype=float,
 ):
     """
     Reconstructs an image from a stack of tiles.
@@ -71,29 +69,31 @@ def tiles_to_image(
     if step is None:
         step = window_shape.copy()
     if np.any(image_shape < window_shape):
-        raise ValueError(f'All image dimensions, {image_shape}, must be greater'
-                         f' than all window dimensions, {window_shape}!')
-    slices_list = list(generate_tile_slices(
-        image_shape=image_shape,
-        window_shape=window_shape,
-        step=step,
-    ))
+        raise ValueError(
+            f"All image dimensions, {image_shape}, must be greater"
+            f" than all window dimensions, {window_shape}!"
+        )
+    slices_list = list(
+        generate_tile_slices(
+            image_shape=image_shape, window_shape=window_shape, step=step,
+        )
+    )
     if len(slices_list) != len(tiles):
-        raise ValueError(f'Mismatch between tiles {len(tiles)} and generated '
-                         f'slices {len(slices_list)}')
+        raise ValueError(
+            f"Mismatch between tiles {len(tiles)} and generated "
+            f"slices {len(slices_list)}"
+        )
 
     image = np.zeros([*image_shape, tiles.shape[-1]], dtype=dtype)
     counts = np.zeros([*image_shape, tiles.shape[-1]], dtype=float)
     for tile, slices in zip(tiles, slices_list):
         image[slices] += tile
-        counts[slices] += 1.
+        counts[slices] += 1.0
     return image / counts
 
 
 def generate_tile_slices(
-        image_shape=np.array((904, 1224)),
-        window_shape=np.array((512, 512)),
-        step=None,
+    image_shape=np.array((904, 1224)), window_shape=np.array((512, 512)), step=None,
 ):
     """
     Computes and yields slices that correspond to tiles of shape window_shape,
@@ -141,9 +141,7 @@ def generate_tile_slices(
 
 
 def tiles_per_image(
-        image_shape=np.array((904, 1224)),
-        window_shape=np.array((512, 512)),
-        step=None,
+    image_shape=np.array((904, 1224)), window_shape=np.array((512, 512)), step=None,
 ):
     """
     Args:
@@ -157,7 +155,9 @@ def tiles_per_image(
     if step is None:
         step = window_shape.copy()
     if np.any(image_shape < window_shape):
-        raise ValueError(f'All image dimensions, {image_shape}, must be greater'
-                         f' than all window dimensions, {window_shape}!')
+        raise ValueError(
+            f"All image dimensions, {image_shape}, must be greater"
+            f" than all window dimensions, {window_shape}!"
+        )
     counts = np.ceil(image_shape / step)
     return int(counts.prod())

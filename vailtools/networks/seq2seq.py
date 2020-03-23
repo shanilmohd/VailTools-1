@@ -7,16 +7,16 @@ from ..layers import SnailAttentionBlock, SnailTCBlock, WaveNetBlock
 
 
 def snail_mdp(
-        embedding_input_dim=None,
-        embedding_output_dim=24,
-        filters=32,
-        final_activation='linear',
-        input_shape=(None, None),
-        key_size=32,
-        output_size=10,
-        return_sequences=False,
-        sequence_length=32,
-        value_size=32,
+    embedding_input_dim=None,
+    embedding_output_dim=24,
+    filters=32,
+    final_activation="linear",
+    input_shape=(None, None),
+    key_size=32,
+    output_size=10,
+    return_sequences=False,
+    sequence_length=32,
+    value_size=32,
 ):
     """
     Settings taken from Section C.1 of https://arxiv.org/abs/1707.03141
@@ -47,24 +47,22 @@ def snail_mdp(
 
     # Used to reduce model output and apply a final activation
     pred = layers.LSTM(
-        output_size,
-        return_sequences=return_sequences,
-        activation=final_activation,
+        output_size, return_sequences=return_sequences, activation=final_activation,
     )(pred)
     return Model(inputs=inputs, outputs=pred)
 
 
 def snail_control(
-        embedding_input_dim=None,
-        embedding_output_dim=24,
-        filters=32,
-        final_activation='linear',
-        input_shape=(None, None),
-        key_size=16,
-        output_size=10,
-        return_sequences=False,
-        sequence_length=32,
-        value_size=16,
+    embedding_input_dim=None,
+    embedding_output_dim=24,
+    filters=32,
+    final_activation="linear",
+    input_shape=(None, None),
+    key_size=16,
+    output_size=10,
+    return_sequences=False,
+    sequence_length=32,
+    value_size=16,
 ):
     """
     Settings taken from Section C.2 of https://arxiv.org/abs/1707.03141
@@ -96,24 +94,22 @@ def snail_control(
 
     # Used to reduce model output and apply a final activation
     pred = layers.LSTM(
-        output_size,
-        return_sequences=return_sequences,
-        activation=final_activation,
+        output_size, return_sequences=return_sequences, activation=final_activation,
     )(pred)
     return Model(inputs=inputs, outputs=pred)
 
 
 def snail_visual(
-        embedding_input_dim=None,
-        embedding_output_dim=24,
-        filters=32,
-        final_activation='linear',
-        input_shape=(None, None),
-        key_size=16,
-        output_size=10,
-        return_sequences=False,
-        sequence_length=32,
-        value_size=16,
+    embedding_input_dim=None,
+    embedding_output_dim=24,
+    filters=32,
+    final_activation="linear",
+    input_shape=(None, None),
+    key_size=16,
+    output_size=10,
+    return_sequences=False,
+    sequence_length=32,
+    value_size=16,
 ):
     """
     Settings taken from Section C.3 of https://arxiv.org/abs/1707.03141
@@ -145,32 +141,30 @@ def snail_visual(
 
     # Used to reduce model output and apply a final activation
     pred = layers.LSTM(
-        output_size,
-        return_sequences=return_sequences,
-        activation=final_activation,
+        output_size, return_sequences=return_sequences, activation=final_activation,
     )(pred)
 
     return Model(inputs=inputs, outputs=pred)
 
 
 def wave_net(
-        activation='tanh',
-        bias_initializer='zeros',
-        depth=10,
-        dilation_rates=None,
-        embedding_input_dim=None,
-        embedding_output_dim=24,
-        filters=16,
-        final_activation='softmax',
-        flatten_output=False,
-        gate_activation='sigmoid',
-        gate_merge=layers.Multiply,
-        input_shape=(None, None),
-        kernel_initializer='glorot_uniform',
-        kernel_size=3,
-        output_channels=1,
-        skip_merge=layers.Concatenate,
-        tail_activation='relu',
+    activation="tanh",
+    bias_initializer="zeros",
+    depth=10,
+    dilation_rates=None,
+    embedding_input_dim=None,
+    embedding_output_dim=24,
+    filters=16,
+    final_activation="softmax",
+    flatten_output=False,
+    gate_activation="sigmoid",
+    gate_merge=layers.Multiply,
+    input_shape=(None, None),
+    kernel_initializer="glorot_uniform",
+    kernel_size=3,
+    output_channels=1,
+    skip_merge=layers.Concatenate,
+    tail_activation="relu",
 ):
     """
     An implementation of WaveNet, described in https://arxiv.org/abs/1609.03499, using Keras.
@@ -231,7 +225,9 @@ def wave_net(
     else:
         pred = inputs
 
-    pred = layers.Conv1D(filters=filters, kernel_size=kernel_size, padding='causal')(pred)
+    pred = layers.Conv1D(filters=filters, kernel_size=kernel_size, padding="causal")(
+        pred
+    )
 
     for i, dilation_rate in zip(range(depth), cycle(dilation_rates)):
         pred = WaveNetBlock(

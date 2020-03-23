@@ -59,6 +59,6 @@ def dice_score(y_true, y_pred):
     Returns: (keras.backend.Tensor)
         Dice score for each sample.
     """
-    numerator = 2. * K.sum(K.batch_flatten(y_true * y_pred), axis=-1)
+    numerator = 2.0 * K.sum(K.batch_flatten(y_true * y_pred), axis=-1)
     denominator = K.sum(K.batch_flatten(y_true + y_pred), axis=-1)
     return numerator / denominator

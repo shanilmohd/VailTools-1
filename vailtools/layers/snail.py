@@ -34,7 +34,9 @@ class SnailAttentionBlock(layers.Layer):
         queries = self.queries_fc(inputs)
         values = self.values_fc(inputs)
         logits = K.batch_dot(queries, K.permute_dimensions(keys, (0, 2, 1)))
-        mask = K.ones_like(logits) * np.triu((-np.inf) * np.ones(logits.shape.as_list()[1:]), k=1)
+        mask = K.ones_like(logits) * np.triu(
+            (-np.inf) * np.ones(logits.shape.as_list()[1:]), k=1
+        )
         logits = mask + logits
         probs = layers.Softmax(axis=-1)(logits / self.sqrt_k)
         read = K.batch_dot(probs, values)
@@ -49,11 +51,7 @@ class SnailDenseBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            filters,
-            dilation_rate,
-            gate_merge=layers.Concatenate,
-            **kwargs,
+        self, filters, dilation_rate, gate_merge=layers.Concatenate, **kwargs,
     ):
         super().__init__(**kwargs)
         self.filters = filters
@@ -63,20 +61,22 @@ class SnailDenseBlock(layers.Layer):
             filters=self.filters,
             kernel_size=2,
             dilation_rate=self.dilation_rate,
-            padding='causal',
-            activation='tanh',
+            padding="causal",
+            activation="tanh",
         )
 
         self.gate_branch = layers.Conv1D(
             filters=self.filters,
             kernel_size=2,
             dilation_rate=self.dilation_rate,
-            padding='causal',
-            activation='sigmoid',
+            padding="causal",
+            activation="sigmoid",
         )
 
     def call(self, inputs, **kwargs):
-        activations = layers.Multiply()([self.value_branch(inputs), self.gate_branch(inputs)])
+        activations = layers.Multiply()(
+            [self.value_branch(inputs), self.gate_branch(inputs)]
+        )
         return self.gate_merge([activations, inputs])
 
 
@@ -108,7 +108,6 @@ class SnailTCBlock(layers.Layer):
 # Should prevent the end user from needing to manually declare custom objects
 # when saving and loading models made by or using VaiLTools
 # Todo: May want to ensure that builtin objects are not overwritten.
-get_custom_objects().update({
-    x.__name__: x
-    for x in [SnailAttentionBlock, SnailDenseBlock, SnailTCBlock]
-})
+get_custom_objects().update(
+    {x.__name__: x for x in [SnailAttentionBlock, SnailDenseBlock, SnailTCBlock]}
+)

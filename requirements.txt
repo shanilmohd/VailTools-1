@@ -1,5 +1,9 @@
+bandit
+black
+isort
 numpy
 pytest
 pytest-cov
 sphinx
 tensorflow>=2.0.0
+vulture

@@ -38,17 +38,15 @@ def noise_ensemble(model, x, batch_size=32, noise_std=0.01, count=30, verbose=Fa
     Returns: (tuple[numpy.ndarray])
         Mean and standard deviation over count predictions for each sample in x.
     """
-    gen = ImageDataGenerator(
-        preprocessing_function=get_noise_func(noise_std)
-    )
+    gen = ImageDataGenerator(preprocessing_function=get_noise_func(noise_std))
     pred = model.predict_generator(
         gen.flow(x, batch_size=batch_size, shuffle=False),
         steps=count * int(np.ceil(len(x) / batch_size)),
-        verbose=verbose
+        verbose=verbose,
     )
     # Truncate the number of predicted slices if necessary
     if len(pred) % (len(x) * count):
-        pred = pred[:-(len(pred) % (len(x) * count))]
+        pred = pred[: -(len(pred) % (len(x) * count))]
 
     # Split the stack of predictions into one chunk per iteration
     pred = np.stack(np.split(pred, count), axis=-1)

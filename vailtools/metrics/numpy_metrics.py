@@ -18,5 +18,7 @@ def iou_score(y_true, y_pred):
         IoU score for each sample.
     """
     intersection = np.sum(np.reshape(y_true * y_pred, (-1, y_true.shape[-1])), axis=-1)
-    union = np.sum(np.reshape(np.maximum(y_true, y_pred), (-1, y_true.shape[-1])), axis=-1)
+    union = np.sum(
+        np.reshape(np.maximum(y_true, y_pred), (-1, y_true.shape[-1])), axis=-1
+    )
     return intersection / union
