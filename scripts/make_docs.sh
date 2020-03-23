@@ -6,10 +6,10 @@ cd "$(dirname "$(readlink -f "$0")")" || exit
 # Then to the top level of the package
 cd ..
 
-if [ ! -d "docs" ]; then
+if [ ! -d docs ]; then
   (
-    mkdir "docs"
-    cd docs
+    mkdir docs
+    cd docs || exit
     sphinx-quickstart
   )
 fi
