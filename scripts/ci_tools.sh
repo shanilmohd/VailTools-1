@@ -19,9 +19,11 @@ function non_human() {
 }
 
 
-# Get the directory where this script resides, and cd there
 # This will ensure relative paths will work as expected
+# cd to the directory where this script resides
 cd "$(dirname "$(readlink -f "$0")")" || exit
+# Then to the top level of the package
+cd ..
 
 # Handle optional arguments
 MODE="${1:-both}"
