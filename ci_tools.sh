@@ -19,8 +19,14 @@ function non_human() {
 }
 
 
+# Get the directory where this script resides, and cd there
+# This will ensure relative paths will work as expected
+cd "$(dirname "$(readlink -f "$0")")" || exit
+
+# Handle optional arguments
 MODE="${1:-both}"
 
+# Dispatch to the correct functions
 if [ "$MODE" = "human" ]; then
     human
 
