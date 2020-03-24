@@ -1,1 +1,10 @@
-from . import callbacks, data, evaluation, layers, losses, metrics, networks
+from . import (
+    callbacks,
+    data,
+    evaluation,
+    layers,
+    losses,
+    metrics,
+    networks,
+    utils,
+)

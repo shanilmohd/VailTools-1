@@ -1,5 +1,6 @@
 from tensorflow.keras import layers
-from tensorflow.keras.utils import get_custom_objects
+
+from ..utils import register_custom_objects
 
 
 class WaveNetBlock(layers.Layer):
@@ -9,17 +10,17 @@ class WaveNetBlock(layers.Layer):
     """
 
     def __init__(
-        self,
-        activation="tanh",
-        bias_initializer="zeros",
-        dilation_rate=1,
-        filters=16,
-        gate_activation="sigmoid",
-        gate_merge=layers.Multiply,
-        kernel_initializer="glorot_uniform",
-        kernel_size=3,
-        skip_merge=layers.Concatenate,
-        **kwargs,
+            self,
+            activation="tanh",
+            bias_initializer="zeros",
+            dilation_rate=1,
+            filters=16,
+            gate_activation="sigmoid",
+            gate_merge=layers.Multiply,
+            kernel_initializer="glorot_uniform",
+            kernel_size=3,
+            skip_merge=layers.Concatenate,
+            **kwargs,
     ):
         """
         Args:
@@ -87,8 +88,4 @@ class WaveNetBlock(layers.Layer):
         return self.skip_merge([inputs, skip_out])
 
 
-# Register custom Keras objects
-# Should prevent the end user from needing to manually declare custom objects
-# when saving and loading models made by or using VaiLTools
-# Todo: May want to ensure that builtin objects are not overwritten.
-get_custom_objects().update({x.__name__: x for x in [WaveNetBlock]})
+register_custom_objects([WaveNetBlock])

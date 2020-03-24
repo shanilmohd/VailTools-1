@@ -35,7 +35,9 @@ def cyclic_lr_schedule(lr0=0.2, total_steps=400, cycles=8):
 class CyclicLRScheduler(Callback):
     """Cyclic learning rate scheduler.
     Args:
-        schedule: (Callable[[int, float], float]) Takes an epoch index (0 indexed), current learning rate and returns a new learning rate.
+        schedule: (Callable[[int, float], float])
+            Takes an epoch index (0 indexed) and  the current learning rate.
+            Returns a new learning rate.
         verbose: (int) 0 -> quiet, 1 -> update messages.
     """
 

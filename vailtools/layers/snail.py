@@ -7,7 +7,8 @@ learning tasks.
 import numpy as np
 import tensorflow.keras.backend as K
 from tensorflow.keras import layers
-from tensorflow.keras.utils import get_custom_objects
+
+from ..utils import register_custom_objects
 
 
 class SnailAttentionBlock(layers.Layer):
@@ -51,7 +52,7 @@ class SnailDenseBlock(layers.Layer):
     """
 
     def __init__(
-        self, filters, dilation_rate, gate_merge=layers.Concatenate, **kwargs,
+            self, filters, dilation_rate, gate_merge=layers.Concatenate, **kwargs,
     ):
         super().__init__(**kwargs)
         self.filters = filters
@@ -104,10 +105,4 @@ class SnailTCBlock(layers.Layer):
         return pred
 
 
-# Register custom Keras objects
-# Should prevent the end user from needing to manually declare custom objects
-# when saving and loading models made by or using VaiLTools
-# Todo: May want to ensure that builtin objects are not overwritten.
-get_custom_objects().update(
-    {x.__name__: x for x in [SnailAttentionBlock, SnailDenseBlock, SnailTCBlock]}
-)
+register_custom_objects([SnailAttentionBlock, SnailDenseBlock, SnailTCBlock])
