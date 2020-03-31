@@ -21,7 +21,7 @@ def lovasz_grad(gt_sorted):
 # --------------------------- BINARY LOSSES ---------------------------
 
 
-def lovasz_hinge(logits, labels, per_image=True, ignore=None):
+def lovasz_hinge(labels, logits, per_image=True, ignore=None):
     """
     Binary Lovasz hinge loss
       logits: [B, H, W] Variable, logits at each pixel (between -\infty and +\infty)
@@ -99,7 +99,7 @@ def flatten_binary_scores(scores, labels, ignore=None):
 # --------------------------- MULTICLASS LOSSES ---------------------------
 
 
-def lovasz_softmax(probas, labels, classes='present', per_image=False, ignore=None, order='BHWC'):
+def lovasz_softmax(labels, probas, classes='present', per_image=False, ignore=None, order='BHWC'):
     """
     Multi-class Lovasz-Softmax loss
       probas: [B, H, W, C] or [B, C, H, W] Variable, class probabilities at each prediction (between 0 and 1)
