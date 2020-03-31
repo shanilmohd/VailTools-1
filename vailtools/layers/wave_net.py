@@ -19,7 +19,7 @@ class WaveNetBlock(layers.Layer):
             gate_merge=layers.Multiply,
             kernel_initializer="glorot_uniform",
             kernel_size=3,
-            skip_merge=layers.Concatenate,
+            skip_merge=layers.Add,
             **kwargs,
     ):
         """
@@ -85,7 +85,7 @@ class WaveNetBlock(layers.Layer):
         gate = self.gate_branch(inputs)
         gated_value = self.gate_merge([value, gate])
         skip_out = self.skip_out(gated_value)
-        return self.skip_merge([inputs, skip_out])
+        return skip_out, self.skip_merge([inputs, skip_out])
 
 
 register_custom_objects([WaveNetBlock])
