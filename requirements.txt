@@ -1,3 +1,10 @@
-keras
+bandit
+black
+isort
+keras-drop-block
 numpy
-tensorflow
+pytest
+pytest-cov
+sphinx
+tensorflow>=2.0.0
+vulture

@@ -4,9 +4,9 @@ Provides loss functions suitable for training Keras models.
 
 from itertools import product
 
-import keras.backend as K
 import tensorflow as tf
-from keras.losses import mse, mae
+import tensorflow.keras.backend as K
+from tensorflow.keras.losses import mae, mse
 
 from .. import metrics
 
@@ -20,7 +20,7 @@ def iou_loss(y_true, y_pred):
     Returns: (keras.backend.Tensor)
         IoU loss for each sample.
     """
-    return 1. - metrics.iou_score(y_true, y_pred)
+    return 1.0 - metrics.iou_score(y_true, y_pred)
 
 
 def class_mean_iou_loss(y_true, y_pred):
@@ -32,7 +32,7 @@ def class_mean_iou_loss(y_true, y_pred):
     Returns: (keras.backend.Tensor)
         Mean IoU loss over classes for each sample.
     """
-    return 1. - metrics.class_mean_iou_score(y_true, y_pred)
+    return 1.0 - metrics.class_mean_iou_score(y_true, y_pred)
 
 
 def dice_loss(y_true, y_pred):
@@ -44,7 +44,7 @@ def dice_loss(y_true, y_pred):
     Returns: (keras.backend.Tensor)
         Dice loss for each sample.
     """
-    return 1. - metrics.dice_score(y_true, y_pred)
+    return 1.0 - metrics.dice_score(y_true, y_pred)
 
 
 def error_weighted_categorical_crossentropy(weights):
@@ -56,13 +56,15 @@ def error_weighted_categorical_crossentropy(weights):
     """
 
     def wcc(y_true, y_pred):
-        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())  # Clip for numerical stability
+        y_pred = K.clip(
+            y_pred, K.epsilon(), 1 - K.epsilon()
+        )  # Clip for numerical stability
 
         final_mask = K.zeros_like(y_pred[:, 0])
         y_pred_max = K.max(y_pred, axis=-1, keepdims=True)
         y_pred_max_mat = K.cast(K.equal(y_pred, y_pred_max), K.floatx())
         for c_p, c_t in product(range(len(weights)), repeat=2):
-            final_mask += (weights[c_t, c_p] * y_pred_max_mat[:, c_p] * y_true[:, c_t])
+            final_mask += weights[c_t, c_p] * y_pred_max_mat[:, c_p] * y_true[:, c_t]
         return K.categorical_crossentropy(y_pred, y_true) * final_mask
 
     return wcc
@@ -78,13 +80,15 @@ def class_weighted_categorical_crossentropy(weights):
     weights = K.variable(weights)
 
     def loss(y_true, y_pred):
-        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())  # Clip for numerical stability
+        y_pred = K.clip(
+            y_pred, K.epsilon(), 1 - K.epsilon()
+        )  # Clip for numerical stability
         return -K.sum(y_true * K.log(y_pred) * weights, axis=-1)
 
     return loss
 
 
-def focal_loss(gamma=2., alpha=0.25):
+def focal_loss(gamma=2.0, alpha=0.25):
     """
     Adapted from https://github.com/Atomwh/FocalLoss_Keras/blob/master/focalloss.py
 
@@ -94,12 +98,13 @@ def focal_loss(gamma=2., alpha=0.25):
     """
 
     def focal_loss_(y_true, y_pred):
-        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())  # Clip for numerical stability
+        y_pred = K.clip(
+            y_pred, K.epsilon(), 1 - K.epsilon()
+        )  # Clip for numerical stability
         pt_1 = tf.where(tf.equal(y_true, 1), y_pred, tf.ones_like(y_pred))
         pt_0 = tf.where(tf.equal(y_true, 0), y_pred, tf.zeros_like(y_pred))
-        return (
-                - K.sum(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1))
-                - K.sum((1 - alpha) * K.pow(pt_0, gamma) * K.log(1. - pt_0))
+        return -K.sum(alpha * K.pow(1.0 - pt_1, gamma) * K.log(pt_1)) - K.sum(
+            (1 - alpha) * K.pow(pt_0, gamma) * K.log(1.0 - pt_0)
         )
 
     return focal_loss_

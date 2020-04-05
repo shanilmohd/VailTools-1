@@ -1,23 +1,23 @@
-from keras import layers
-from keras.models import Model
+from tensorflow.keras import layers
+from tensorflow.keras.models import Model
 
 from ..layers.visual_layers import ResidualBlock
 
 
 def res_net(
-        activation='selu',
-        bias_initializer='zeros',
-        blocks_per_layer=2,
-        dense_neurons=512,
-        depth=2,
-        drop_prob=0.25,
-        filters=64,
-        final_activation='softmax',
-        input_shape=(None, None, None),
-        kernel_initializer='glorot_uniform',
-        noise_std=0.,
-        num_classes=10,
-        residual_merge=layers.add,
+    activation="selu",
+    bias_initializer="zeros",
+    blocks_per_layer=2,
+    dense_neurons=512,
+    depth=2,
+    drop_prob=0.25,
+    filters=64,
+    final_activation="softmax",
+    input_shape=(None, None, None),
+    kernel_initializer="glorot_uniform",
+    noise_std=0.0,
+    num_classes=10,
+    residual_merge=layers.Add,
 ):
     inputs = layers.Input(shape=input_shape)
     pred = layers.GaussianNoise(stddev=noise_std)(inputs)
@@ -30,7 +30,7 @@ def res_net(
                 filters=filters,
                 kernel_initializer=kernel_initializer,
                 merge=residual_merge,
-                project=not bool(i),
+                residual_projection=not bool(i),
             )(pred)
         pred = layers.add([layers.MaxPool2D()(pred), layers.AvgPool2D()(pred)])
         filters *= 2

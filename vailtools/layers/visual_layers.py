@@ -1,6 +1,7 @@
-from keras import layers
-from keras.utils.generic_utils import get_custom_objects
 import numpy as np
+from tensorflow.keras import layers
+
+from ..utils import register_custom_objects
 
 
 class ResidualBlock(layers.Layer):
@@ -11,13 +12,13 @@ class ResidualBlock(layers.Layer):
 
     def __init__(
             self,
-            activation='relu',
-            bias_initializer='zeros',
+            activation="relu",
+            bias_initializer="zeros",
             filters=16,
-            kernel_initializer='glorot_uniform',
+            kernel_initializer="glorot_uniform",
             kernel_size=(3, 3),
             merge=layers.Concatenate,
-            padding='same',
+            padding="same",
             residual_projection=False,
             **kwargs,
     ):
@@ -53,21 +54,14 @@ class ResidualBlock(layers.Layer):
                 kernel_initializer=self.kernel_initializer,
                 bias_initializer=self.bias_initializer,
             )
-        self.final_merge = merge()
+        self.merge = merge()
 
     def call(self, inputs, **kwargs):
         pred = self.conv_1(inputs)
         pred = self.conv_2(pred)
         if self.residual_projection:
             inputs = self.projection(inputs)
-        return self.final_merge([inputs, pred])
-
-    def compute_output_shape(self, input_shape):
-        shape_1 = self.conv_1.compute_output_shape(input_shape)
-        shape_2 = self.conv_2.compute_output_shape(shape_1)
-        if self.residual_projection:
-            input_shape = self.projection.compute_output_shape(input_shape)
-        return self.final_merge.compute_output_shape([input_shape, shape_2])
+        return self.merge([inputs, pred])
 
 
 class ResidualBottleneckBlock(layers.Layer):
@@ -78,14 +72,14 @@ class ResidualBottleneckBlock(layers.Layer):
 
     def __init__(
             self,
-            activation='relu',
-            bias_initializer='zeros',
+            activation="relu",
+            bias_initializer="zeros",
             filters=16,
-            kernel_initializer='glorot_uniform',
+            kernel_initializer="glorot_uniform",
             kernel_size=(3, 3),
             merge=layers.Concatenate,
             neck_filters=None,
-            padding='same',
+            padding="same",
             residual_projection=False,
             **kwargs,
     ):
@@ -129,7 +123,7 @@ class ResidualBottleneckBlock(layers.Layer):
                 kernel_initializer=self.kernel_initializer,
                 bias_initializer=self.bias_initializer,
             )
-        self.final_merge = merge()
+        self.merge = merge()
 
     def call(self, inputs, **kwargs):
         pred = self.compress_conv(inputs)
@@ -137,15 +131,7 @@ class ResidualBottleneckBlock(layers.Layer):
         pred = self.expand_conv(pred)
         if self.residual_projection:
             inputs = self.projection(inputs)
-        return self.final_merge([inputs, pred])
-
-    def compute_output_shape(self, input_shape):
-        shape_1 = self.compress_conv.compute_output_shape(input_shape)
-        shape_2 = self.bottleneck_conv.compute_output_shape(shape_1)
-        shape_3 = self.expand_conv.compute_output_shape(shape_2)
-        if self.residual_projection:
-            input_shape = self.projection.compute_output_shape(input_shape)
-        return self.final_merge.compute_output_shape([input_shape, shape_3])
+        return self.merge([inputs, pred])
 
 
 class DenseBlock(layers.Layer):
@@ -156,14 +142,14 @@ class DenseBlock(layers.Layer):
 
     def __init__(
             self,
-            activation='relu',
-            bias_initializer='zeros',
+            activation="relu",
+            bias_initializer="zeros",
             depth=2,
             filters=16,
-            kernel_initializer='glorot_uniform',
+            kernel_initializer="glorot_uniform",
             kernel_size=(3, 3),
             merge=layers.Concatenate,
-            padding='same',
+            padding="same",
             **kwargs,
     ):
         super().__init__(**kwargs)
@@ -194,31 +180,23 @@ class DenseBlock(layers.Layer):
             output = self.merge([output, layer(output)])
         return output
 
-    def compute_output_shape(self, input_shape):
-        output_shape = input_shape
-        for layer in self.layers:
-            output_shape = self.merge.compute_output_shape([
-                output_shape,
-                layer.compute_output_shape(output_shape),
-            ])
-        return output_shape
-
 
 class SparseBlock(layers.Layer):
     """
     Implements the sparsely connected convolution block described in:
         https://arxiv.org/abs/1801.05895
     """
+
     def __init__(
             self,
-            activation='relu',
-            bias_initializer='zeros',
+            activation="relu",
+            bias_initializer="zeros",
             depth=4,
             filters=16,
-            kernel_initializer='glorot_uniform',
+            kernel_initializer="glorot_uniform",
             kernel_size=(3, 3),
             merge=layers.Concatenate,
-            padding='same',
+            padding="same",
             **kwargs,
     ):
         """
@@ -271,32 +249,23 @@ class SparseBlock(layers.Layer):
             inputs.append(pred)
         return pred
 
-    def compute_output_shape(self, input_shape):
-        pred_shape = input_shape
-        input_shapes = [input_shape]
-        for i in range(self.depth):
-            inds = [-(2 ** j) for j in range(1 + int(np.log2(i + 1)))]
-            pred_shape = self.merge.compute_output_shape([input_shapes[ind] for ind in inds])
-            pred_shape = self.layers[i].compute_output_shape(pred_shape)
-            input_shapes.append(pred_shape)
-        return pred_shape
-
 
 class FractalBlock(layers.Layer):
     """
     Implements the fractal convolution block described in:
         https://arxiv.org/abs/1605.07648
     """
+
     def __init__(
             self,
-            activation='relu',
-            bias_initializer='zeros',
+            activation="relu",
+            bias_initializer="zeros",
             depth=4,
             filters=16,
-            kernel_initializer='glorot_uniform',
+            kernel_initializer="glorot_uniform",
             kernel_size=(3, 3),
             merge=layers.Concatenate,
-            padding='same',
+            padding="same",
             **kwargs,
     ):
         """
@@ -338,10 +307,7 @@ class FractalBlock(layers.Layer):
             )
             for _ in range(self.get_layer_count(self.depth))
         ]
-        self.merges = [
-            merge()
-            for _ in range(self.get_merge_count(self.depth))
-        ]
+        self.merges = [merge() for _ in range(self.get_merge_count(self.depth))]
 
     def get_layer_count(self, depth):
         if depth == 1:
@@ -369,43 +335,13 @@ class FractalBlock(layers.Layer):
             layer_split = (len(layers) - 1) // 2
             merge_split = (len(merges) - 1) // 2
             branch_1 = self.call(
-                inputs,
-                layers=layers[:layer_split],
-                merges=merges[:merge_split],
+                inputs, layers=layers[:layer_split], merges=merges[:merge_split],
             )
             branch_1 = self.call(
-                branch_1,
-                layers=layers[layer_split:-1],
-                merges=merges[merge_split:-1],
+                branch_1, layers=layers[layer_split:-1], merges=merges[merge_split:-1],
             )
             branch_2 = layers[-1](inputs)
             return merges[-1]([branch_1, branch_2])
-
-    def compute_output_shape(self, input_shape, layers=None, merges=None):
-        if not layers and not merges:
-            layers = self.layers
-            merges = self.merges
-
-        if (len(layers) == 3) and (len(merges) == 1):
-            branch_1_shape = layers[0].compute_output_shape(input_shape)
-            branch_1_shape = layers[1].compute_output_shape(branch_1_shape)
-            branch_2_shape = layers[2].compute_output_shape(input_shape)
-            return merges[0].compute_output_shape([branch_1_shape, branch_2_shape])
-        else:
-            layer_split = (len(layers) - 1) // 2
-            merge_split = (len(merges) - 1) // 2
-            branch_1_shape = self.compute_output_shape(
-                input_shape,
-                layers=layers[:layer_split],
-                merges=merges[:merge_split],
-            )
-            branch_1_shape = self.compute_output_shape(
-                branch_1_shape,
-                layers=layers[layer_split:-1],
-                merges=merges[merge_split:-1],
-            )
-            branch_2_shape = layers[-1].compute_output_shape(input_shape)
-            return merges[-1].compute_output_shape([branch_1_shape, branch_2_shape])
 
 
 class DilationBlock(layers.Layer):
@@ -416,16 +352,17 @@ class DilationBlock(layers.Layer):
         https://arxiv.org/abs/1710.02224
         https://arxiv.org/abs/1802.10062
     """
+
     def __init__(
             self,
-            activation='selu',
-            bias_initializer='zeros',
+            activation="selu",
+            bias_initializer="zeros",
             dilations=None,
             filters=16,
-            kernel_initializer='glorot_uniform',
+            kernel_initializer="glorot_uniform",
             kernel_size=(3, 3),
             merge=layers.Add,
-            padding='same',
+            padding="same",
             skip_connection=False,
             **kwargs,
     ):
@@ -477,19 +414,11 @@ class DilationBlock(layers.Layer):
             preds = [inputs] + preds
         return self.merge(preds)
 
-    def compute_output_shape(self, input_shape):
-        pred_shapes = [
-            layer.compute_output_shape(input_shape)
-            for layer in self.layers
-        ]
-        if self.skip_connection:
-            pred_shapes = [input_shape] + pred_shapes
-        return self.merge.compute_output_shape(pred_shapes)
 
-
-# Todo: May want to add some validation to ensure that builtin Keras objects are
-#  not overwritten.
-get_custom_objects().update({
-    x.__name__: x
-    for x in [ResidualBlock, ResidualBottleneckBlock, DenseBlock, FractalBlock, DilationBlock]
-})
+register_custom_objects([
+    ResidualBlock,
+    ResidualBottleneckBlock,
+    DenseBlock,
+    FractalBlock,
+    DilationBlock,
+])
