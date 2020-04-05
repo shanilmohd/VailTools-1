@@ -19,6 +19,7 @@ class WaveNetBlock(layers.Layer):
             gate_merge=layers.Multiply,
             kernel_initializer="glorot_uniform",
             kernel_size=3,
+            project=True,
             skip_merge=layers.Add,
             **kwargs,
     ):
@@ -35,6 +36,10 @@ class WaveNetBlock(layers.Layer):
                 Number of filters used in convolutions.
             kernel_initializer: (str or Callable)
                 Name or instance of a keras.initializers.Initializer.
+            project: (bool)
+                Toggles the use of a linear projection on the residual branch.
+                This alleviates channel dimension issues when filters is not equal
+                to the number of input channels.
             gate_activation: (str or Callable)
                 Name of a keras activation function or an instance of a keras/Tensorflow activation function.
                 Applied to the gate branch of a gated activation unit
@@ -45,12 +50,13 @@ class WaveNetBlock(layers.Layer):
         """
         super().__init__(**kwargs)
         self.activation = activation
-        self.gate_activation = gate_activation
         self.bias_initializer = bias_initializer
+        self.dilation_rate = dilation_rate
+        self.filters = filters
+        self.gate_activation = gate_activation
         self.kernel_initializer = kernel_initializer
         self.kernel_size = kernel_size
-        self.filters = filters
-        self.dilation_rate = dilation_rate
+        self.project = project
 
         self.value_branch = layers.Conv1D(
             activation=self.activation,
@@ -72,11 +78,13 @@ class WaveNetBlock(layers.Layer):
         )
         self.skip_out = layers.Conv1D(
             bias_initializer=self.bias_initializer,
-            dilation_rate=self.dilation_rate,
             filters=self.filters,
             kernel_initializer=self.kernel_initializer,
             kernel_size=1,
         )
+        if self.project:
+            self.project_layer = layers.Conv1D(filters=filters, kernel_size=1)
+
         self.gate_merge = gate_merge()
         self.skip_merge = skip_merge()
 
@@ -85,6 +93,10 @@ class WaveNetBlock(layers.Layer):
         gate = self.gate_branch(inputs)
         gated_value = self.gate_merge([value, gate])
         skip_out = self.skip_out(gated_value)
+
+        if self.project:
+            inputs = self.project_layer(inputs)
+
         return skip_out, self.skip_merge([inputs, skip_out])
 
 

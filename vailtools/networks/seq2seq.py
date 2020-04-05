@@ -244,7 +244,7 @@ def wave_net(
             kernel_size=kernel_size,
             skip_merge=skip_merge,
         )(pred)
-        skip_outs.append(skip_outs)
+        skip_outs.append(skip_out)
     skip_outs.append(pred)
     pred = skip_merge()(skip_outs)
     pred = layers.BatchNormalization()(pred)
