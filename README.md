@@ -1,27 +1,16 @@
 # VaiL Tools
-Components, tools, and utilities for building, training, and testing artificial neural networks in Python.
+Components, tools, and utilities for building, training, and testing artificial
+neural networks in Python.
+VaiL Tools is built on top of TensorFlow, and targets TensorFlow.Keras and the
+TensorFlow 2.0 API.
 
-The primary goal of this package is to provide reference implementations of tools, tricks,
-and architectures, allowing researchers to quickly and easily test a variety of configurations.
+The primary goal of this package is to provide reference implementations of tools,
+tricks, and architectures, allowing researchers to quickly and easily test a
+variety of configurations.
 In support of this, VaiL Tools prioritizes modularity, usability, and clarity.
 
-Please open an issue or contact us if you encounter any problems with the package or have a
+Please open an issue or contact us if you encounter any problems or have a
 feature request.
-
-Vail Tools is built on top of TensorFlow, and primarily targets TensoFlow.Keras.
-
-
-## Contents
-| Name       | Description                                                                             |
-| ---        | ---                                                                                     |
-| callbacks  | Specialized learning rate schedulers and other callbacks used by keras.models.Model.fit |
-| data       | Data management utilities such as image tiling and data split generation.               |
-| evaluation | Utilities applied at test-time, such as test-time data augmentation.                    |
-| layers     | Building blocks for neural networks such as residual blocks, dense blocks, etc.         |
-| losses     | Loss functions used to train neural network models.                                     |
-| metrics    | Metrics useful for monitoring training performance.                                     |
-| networks   | Fully constructed and compiled Keras models.                                            |
-
 
 ## Installation
 The prefered installation method is via `pip`:
