@@ -7,4 +7,4 @@ cd "$(dirname "$(readlink -f "$0")")" || exit
 cd ..
 
 # use the -s flag to see std out, useful for viewing model summaries
-python -m pytest --cov=vailtools/ tests/ -v
+python -m pytest --lf --cov=vailtools/ tests/ -v
