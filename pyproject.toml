@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "vailtools"
+version = "0.4.0"
+license="MIT"
+description = "Components and tools for building, training, and evaluating artificial neural networks in Python."
+authors = ["Colin Van Oort <cvanoort156@gmail.com>", "VaiL <vail.csds@gmail.com>"]
+readme = "README.md"
+repository = "https://gitlab.com/vail-uvm/vail-tools"
+keywords = ["TensorFlow"]
+classifiers=[
+    # Trove classifiers
+    # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: Implementation :: CPython",
+]
+include = [
+    "LICENSE.txt",
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+keras-drop-block = "*"
+numpy = "*"
+scikit-image = "*"
+tensorflow = "^2"
+
+[tool.poetry.dev-dependencies]
+bandit = "*"
+black = {version = "*", allow-prereleases = true}
+isort = "*"
+pytest = "*"
+pytest-cov = "*"
+sphinx = "*"
+vulture = "*"
+
+[build-system]
+requires = ["poetry>=1.0"]
+build-backend = "poetry.masonry.api"
