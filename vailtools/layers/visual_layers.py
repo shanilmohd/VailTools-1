@@ -8,28 +8,35 @@ class ResidualBlock(layers.Layer):
     """
     Implements the simple residual block discussed in:
         https://arxiv.org/abs/1512.03385
+
+    Squeeze and Excitation module can be enabled:
+        https://arxiv.org/abs/1709.01507
     """
 
     def __init__(
             self,
             activation="relu",
             bias_initializer="zeros",
+            excite_factor=4,
             filters=16,
             kernel_initializer="glorot_uniform",
             kernel_size=(3, 3),
             merge=layers.Concatenate,
             padding="same",
             residual_projection=False,
+            squeeze_and_excite=False,
             **kwargs,
     ):
         super().__init__(**kwargs)
         self.activation = activation
         self.bias_initializer = bias_initializer
-        self.filters = filters
+        self.excite_factor = int(excite_factor)
+        self.filters = int(filters)
         self.kernel_initializer = kernel_initializer
         self.kernel_size = kernel_size
         self.padding = padding
         self.residual_projection = residual_projection
+        self.squeeze_and_excite = squeeze_and_excite
 
         self.conv_1 = layers.Conv2D(
             activation=self.activation,
@@ -47,6 +54,24 @@ class ResidualBlock(layers.Layer):
             kernel_size=self.kernel_size,
             padding=self.padding,
         )
+
+        if self.squeeze_and_excite:
+            self.squeeze = layers.GlobalAveragePooling2D()
+            self.excite_1 = layers.Dense(
+                self.filters // self.excite_factor,
+                activation=self.activation,
+                bias_initializer=self.bias_initializer,
+                kernel_initializer=self.kernel_initializer,
+            )
+            self.excite_2 = layers.Dense(
+                self.filters,
+                activation="sigmoid",
+                bias_initializer=self.bias_initializer,
+                kernel_initializer=self.kernel_initializer,
+            )
+            self.reshape = layers.Reshape((1, 1, self.filters))
+            self.scale = layers.Lambda(lambda x, y: x * y)
+
         if self.residual_projection:
             self.projection = layers.Conv2D(
                 filters=self.filters,
@@ -59,6 +84,14 @@ class ResidualBlock(layers.Layer):
     def call(self, inputs, **kwargs):
         pred = self.conv_1(inputs)
         pred = self.conv_2(pred)
+
+        if self.squeeze_and_excite:
+            se_pred = self.squeeze(pred)
+            se_pred = self.excite_1(se_pred)
+            se_pred = self.excite_2(se_pred)
+            se_pred = self.reshape(se_pred)
+            pred = self.scale(pred, se_pred)
+
         if self.residual_projection:
             inputs = self.projection(inputs)
         return self.merge([inputs, pred])
@@ -415,10 +448,75 @@ class DilationBlock(layers.Layer):
         return self.merge(preds)
 
 
+class FireBlock(layers.Layer):
+    """
+    Implements the Fire module discussed in:
+        https://arxiv.org/abs/1602.07360
+    """
+
+    def __init__(
+            self,
+            activation="relu",
+            bias_initializer="zeros",
+            e1_filters=4,
+            e3_filters=4,
+            kernel_initializer="glorot_uniform",
+            kernel_size=(3, 3),
+            merge=layers.Concatenate,
+            padding="same",
+            s1_filters=3,
+            **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.activation = activation
+        self.bias_initializer = bias_initializer
+        self.e1_filters = e1_filters
+        self.e3_filters = e3_filters
+        self.kernel_initializer = kernel_initializer
+        self.kernel_size = kernel_size
+        self.padding = padding
+        self.s1_filters = s1_filters
+
+        self.squeeze = layers.Conv2D(
+            activation=self.activation,
+            bias_initializer=self.bias_initializer,
+            filters=self.s1_filters,
+            kernel_initializer=self.kernel_initializer,
+            kernel_size=self.kernel_size,
+            padding=self.padding,
+        )
+        self.excitation_1 = layers.Conv2D(
+            activation=self.activation,
+            bias_initializer=self.bias_initializer,
+            filters=self.e1_filters,
+            kernel_initializer=self.kernel_initializer,
+            kernel_size=self.kernel_size,
+            padding=self.padding,
+        )
+        self.excitation_3 = layers.Conv2D(
+            activation=self.activation,
+            bias_initializer=self.bias_initializer,
+            filters=self.e3_filters,
+            kernel_initializer=self.kernel_initializer,
+            kernel_size=self.kernel_size,
+            padding=self.padding,
+        )
+        self.merge = merge()
+
+    def call(self, inputs, **kwargs):
+        pred = self.squeeze(inputs)
+        pred = self.merge([
+            self.excitation_1(pred),
+            self.excitation_2(pred),
+        ])
+        return pred
+
+
 register_custom_objects([
+    DenseBlock,
+    DilationBlock,
+    FireBlock,
+    FractalBlock,
     ResidualBlock,
     ResidualBottleneckBlock,
-    DenseBlock,
-    FractalBlock,
-    DilationBlock,
 ])
