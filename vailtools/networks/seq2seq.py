@@ -3,7 +3,7 @@ from itertools import cycle
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model
 
-from ..layers import SnailAttentionBlock, SnailTCBlock, WaveNetBlock
+from ..layers import SnailAttentionBlock, SnailTCBlock, WaveNetBlock, DropBlock2D
 
 
 def snail_mdp(
@@ -152,6 +152,8 @@ def wave_net(
         bias_initializer="zeros",
         depth=10,
         dilation_rates=None,
+        drop_layer=DropBlock2D,
+        drop_rate=0.,
         embedding_input_dim=None,
         embedding_output_dim=24,
         filters=16,
@@ -181,6 +183,11 @@ def wave_net(
             Number of consecutive gated residual blocks used in model construction.
         dilation_rates: (tuple[int])
             Sequence of dilation rates used cyclically during the creation of gated residual blocks.
+        drop_layer: (tensorflow.keras.layers.Layer)
+            Layer used to apply dropout.
+            Usually tf.keras.layers.SpatialDropout2D or vailtools.layers.DropBlock2D.
+        drop_rate: (float)
+            Probability of dropping input features
         embedding_input_dim: (int)
             Size of the vocabulary to be embedded.
         embedding_output_dim: (int)
@@ -251,6 +258,10 @@ def wave_net(
         skip_outs.append(skip_out)
     skip_outs.append(pred)
     pred = skip_merge()(skip_outs)
+
+    if drop_rate:
+        pred = drop_layer(drop_rate)(pred)
+
     pred = layers.BatchNormalization()(pred)
     pred = layers.Activation(tail_activation)(pred)
     pred = layers.Conv1D(
