@@ -23,6 +23,7 @@ def test_cyclic_lr_scheduler():
     model.fit(
         train_x,
         keras.utils.to_categorical(train_y),
+        batch_size=64,
         epochs=5,
-        callbacks=[CyclicLRScheduler(total_steps=5, cycles=1)],
+        callbacks=[CyclicLRScheduler(cycle_period=2048 // 64)],
     )
