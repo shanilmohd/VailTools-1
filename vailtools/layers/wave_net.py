@@ -19,6 +19,7 @@ class WaveNetBlock(layers.Layer):
             gate_merge=layers.Multiply,
             kernel_initializer="glorot_uniform",
             kernel_size=3,
+            padding='causal',
             project=True,
             skip_merge=layers.Add,
             **kwargs,
@@ -36,6 +37,8 @@ class WaveNetBlock(layers.Layer):
                 Number of filters used in convolutions.
             kernel_initializer: (str or Callable)
                 Name or instance of a keras.initializers.Initializer.
+            padding: (str)
+                Padding scheme used in convolutions. Options are {'valid', 'same', 'causal'}.
             project: (bool)
                 Toggles the use of a linear projection on the residual branch.
                 This alleviates channel dimension issues when filters is not equal
@@ -65,7 +68,7 @@ class WaveNetBlock(layers.Layer):
             filters=self.filters,
             kernel_initializer=self.kernel_initializer,
             kernel_size=self.kernel_size,
-            padding="causal",
+            padding=padding,
         )
         self.gate_branch = layers.Conv1D(
             activation=self.gate_activation,
@@ -74,7 +77,7 @@ class WaveNetBlock(layers.Layer):
             filters=self.filters,
             kernel_initializer=self.kernel_initializer,
             kernel_size=self.kernel_size,
-            padding="causal",
+            padding=padding,
         )
         self.skip_out = layers.Conv1D(
             bias_initializer=self.bias_initializer,
@@ -83,7 +86,12 @@ class WaveNetBlock(layers.Layer):
             kernel_size=1,
         )
         if self.project:
-            self.project_layer = layers.Conv1D(filters=filters, kernel_size=1)
+            self.project_layer = layers.Conv1D(
+                bias_initializer=self.bias_initializer,
+                filters=self.filters,
+                kernel_initializer=self.kernel_initializer,
+                kernel_size=1
+            )
 
         self.gate_merge = gate_merge()
         self.skip_merge = skip_merge()

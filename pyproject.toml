@@ -22,7 +22,6 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-keras-drop-block = "*"
 numpy = "*"
 scikit-image = "*"
 tensorflow = "^2"

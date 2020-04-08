@@ -163,6 +163,7 @@ def wave_net(
         kernel_initializer="glorot_uniform",
         kernel_size=3,
         output_channels=1,
+        padding="causal",
         skip_merge=layers.Add,
         tail_activation="relu",
 ):
@@ -180,10 +181,10 @@ def wave_net(
             Number of consecutive gated residual blocks used in model construction.
         dilation_rates: (tuple[int])
             Sequence of dilation rates used cyclically during the creation of gated residual blocks.
-        embedding_input_dim:
-
-        embedding_output_dim:
-
+        embedding_input_dim: (int)
+            Size of the vocabulary to be embedded.
+        embedding_output_dim: (int)
+            Number of features in the produced embedding.
         filters: (int)
             Number of filters used in each convolution operation.
         final_activation: (str or Callable)
@@ -206,6 +207,8 @@ def wave_net(
             Name or instance of a keras optimizer that will be used for training.
         output_channels: (int)
             Number of output channels/features.
+        padding: (str)
+                Padding scheme used in convolutions. Options are {'valid', 'same', 'causal'}.
         skip_merge: tensorflow.keras.layers.Merge
             Layer that handles skip connection merge behavior.
             Common options are Add, Concatenate, Maximum, and Multiply.
@@ -216,7 +219,7 @@ def wave_net(
         A compiled WaveNet
     """
     if dilation_rates is None:
-        dilation_rates = tuple(2 ** x for x in range(10))
+        dilation_rates = tuple(2 ** x for x in range(depth))
 
     inputs = layers.Input(shape=input_shape)
 
@@ -228,7 +231,7 @@ def wave_net(
     pred = layers.Conv1D(
         filters=filters,
         kernel_size=kernel_size,
-        padding="causal",
+        padding=padding,
     )(pred)
 
     skip_outs = []
@@ -242,6 +245,7 @@ def wave_net(
             gate_merge=gate_merge,
             kernel_initializer=kernel_initializer,
             kernel_size=kernel_size,
+            padding=padding,
             skip_merge=skip_merge,
         )(pred)
         skip_outs.append(skip_out)
@@ -249,26 +253,25 @@ def wave_net(
     pred = skip_merge()(skip_outs)
     pred = layers.BatchNormalization()(pred)
     pred = layers.Activation(tail_activation)(pred)
-
     pred = layers.Conv1D(
         bias_initializer=bias_initializer,
         filters=filters,
         kernel_initializer=kernel_initializer,
         kernel_size=1,
     )(pred)
+
     pred = layers.BatchNormalization()(pred)
     pred = layers.Activation(tail_activation)(pred)
-
     pred = layers.Conv1D(
         bias_initializer=bias_initializer,
         filters=output_channels,
         kernel_initializer=kernel_initializer,
         kernel_size=1,
     )(pred)
-    pred = layers.BatchNormalization()(pred)
 
     if flatten_output:
         pred = layers.GlobalAvgPool1D()(pred)
 
+    pred = layers.BatchNormalization()(pred)
     pred = layers.Activation(final_activation)(pred)
     return Model(inputs=inputs, outputs=pred)
