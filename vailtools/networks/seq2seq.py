@@ -3,20 +3,20 @@ from itertools import cycle
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model
 
-from ..layers import SnailAttentionBlock, SnailTCBlock, WaveNetBlock, DropBlock2D
+from ..layers import DropBlock2D, SnailAttentionBlock, SnailTCBlock, WaveNetBlock
 
 
 def snail_mdp(
-        embedding_input_dim=None,
-        embedding_output_dim=24,
-        filters=32,
-        final_activation="linear",
-        input_shape=(None, None),
-        key_size=32,
-        output_size=10,
-        return_sequences=False,
-        sequence_length=32,
-        value_size=32,
+    embedding_input_dim=None,
+    embedding_output_dim=24,
+    filters=32,
+    final_activation="linear",
+    input_shape=(None, None),
+    key_size=32,
+    output_size=10,
+    return_sequences=False,
+    sequence_length=32,
+    value_size=32,
 ):
     """
     Settings taken from Section C.1 of https://arxiv.org/abs/1707.03141
@@ -53,16 +53,16 @@ def snail_mdp(
 
 
 def snail_control(
-        embedding_input_dim=None,
-        embedding_output_dim=24,
-        filters=32,
-        final_activation="linear",
-        input_shape=(None, None),
-        key_size=16,
-        output_size=10,
-        return_sequences=False,
-        sequence_length=32,
-        value_size=16,
+    embedding_input_dim=None,
+    embedding_output_dim=24,
+    filters=32,
+    final_activation="linear",
+    input_shape=(None, None),
+    key_size=16,
+    output_size=10,
+    return_sequences=False,
+    sequence_length=32,
+    value_size=16,
 ):
     """
     Settings taken from Section C.2 of https://arxiv.org/abs/1707.03141
@@ -100,16 +100,16 @@ def snail_control(
 
 
 def snail_visual(
-        embedding_input_dim=None,
-        embedding_output_dim=24,
-        filters=32,
-        final_activation="linear",
-        input_shape=(None, None),
-        key_size=16,
-        output_size=10,
-        return_sequences=False,
-        sequence_length=32,
-        value_size=16,
+    embedding_input_dim=None,
+    embedding_output_dim=24,
+    filters=32,
+    final_activation="linear",
+    input_shape=(None, None),
+    key_size=16,
+    output_size=10,
+    return_sequences=False,
+    sequence_length=32,
+    value_size=16,
 ):
     """
     Settings taken from Section C.3 of https://arxiv.org/abs/1707.03141
@@ -148,26 +148,26 @@ def snail_visual(
 
 
 def wave_net(
-        activation="tanh",
-        bias_initializer="zeros",
-        depth=10,
-        dilation_rates=None,
-        drop_layer=DropBlock2D,
-        drop_rate=0.,
-        embedding_input_dim=None,
-        embedding_output_dim=24,
-        filters=16,
-        final_activation="softmax",
-        flatten_output=False,
-        gate_activation="sigmoid",
-        gate_merge=layers.Multiply,
-        input_shape=(None, None),
-        kernel_initializer="glorot_uniform",
-        kernel_size=3,
-        output_channels=1,
-        padding="causal",
-        skip_merge=layers.Add,
-        tail_activation="relu",
+    activation="tanh",
+    bias_initializer="zeros",
+    depth=10,
+    dilation_rates=None,
+    drop_layer=DropBlock2D,
+    drop_rate=0.0,
+    embedding_input_dim=None,
+    embedding_output_dim=24,
+    filters=16,
+    final_activation="softmax",
+    flatten_output=False,
+    gate_activation="sigmoid",
+    gate_merge=layers.Multiply,
+    input_shape=(None, None),
+    kernel_initializer="glorot_uniform",
+    kernel_size=3,
+    output_channels=1,
+    padding="causal",
+    skip_merge=layers.Add,
+    tail_activation="relu",
 ):
     """
     An implementation of WaveNet, described in https://arxiv.org/abs/1609.03499, using Keras.
@@ -235,11 +235,9 @@ def wave_net(
     else:
         pred = inputs
 
-    pred = layers.Conv1D(
-        filters=filters,
-        kernel_size=kernel_size,
-        padding=padding,
-    )(pred)
+    pred = layers.Conv1D(filters=filters, kernel_size=kernel_size, padding=padding,)(
+        pred
+    )
 
     skip_outs = []
     for i, dilation_rate in zip(range(depth), cycle(dilation_rates)):

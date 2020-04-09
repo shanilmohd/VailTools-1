@@ -1,6 +1,6 @@
 import numpy as np
-from tensorflow import keras
 
+from tensorflow import keras
 from vailtools.layers import (
     DenseBlock,
     DilationBlock,

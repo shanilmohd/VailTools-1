@@ -1,6 +1,6 @@
 import numpy as np
-import tensorflow as tf
 
+import tensorflow as tf
 from vailtools.data.generate import pickup_sticks_image
 from vailtools.losses import lovasz
 

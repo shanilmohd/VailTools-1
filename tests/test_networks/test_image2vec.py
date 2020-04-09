@@ -1,5 +1,4 @@
 from tensorflow.keras.datasets import mnist
-
 from vailtools import networks
 
 (train_x, train_y), _ = mnist.load_data()

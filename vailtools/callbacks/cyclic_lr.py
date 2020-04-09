@@ -1,7 +1,9 @@
+import logging
+
 import numpy as np
+
 import tensorflow.keras.backend as K
 from tensorflow.keras.callbacks import Callback
-import logging
 
 
 def cyclic_lr_schedule(lr0=0.2, cycle_period=10):
@@ -16,18 +18,7 @@ def cyclic_lr_schedule(lr0=0.2, cycle_period=10):
     """
 
     def cyclic_lr_schedule_(step, lr=0.0):
-        return (
-            0.5
-            * lr0
-            * (
-                np.cos(
-                    np.pi
-                    * (step % cycle_period)
-                    / cycle_period
-                )
-                + 1
-            )
-        )
+        return 0.5 * lr0 * (np.cos(np.pi * (step % cycle_period) / cycle_period) + 1)
 
     return cyclic_lr_schedule_
 
@@ -58,10 +49,7 @@ class CyclicLRScheduler(Callback):
         if not hasattr(self.model.optimizer, "lr"):
             raise ValueError('Optimizer must have a "lr" attribute.')
 
-        lr = self.schedule(
-            self.step,
-            lr=float(K.get_value(self.model.optimizer.lr))
-        )
+        lr = self.schedule(self.step, lr=float(K.get_value(self.model.optimizer.lr)))
 
         if not isinstance(lr, (float, np.float32, np.float64)):
             raise ValueError('The output of the "schedule" function should be float.')

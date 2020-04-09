@@ -1,4 +1,5 @@
 import numpy as np
+
 from tensorflow.keras import layers
 
 from ..utils import register_custom_objects
@@ -14,18 +15,18 @@ class ResidualBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation="relu",
-            bias_initializer="zeros",
-            excite_factor=4,
-            filters=16,
-            kernel_initializer="glorot_uniform",
-            kernel_size=(3, 3),
-            merge=layers.Concatenate,
-            padding="same",
-            residual_projection=False,
-            squeeze_and_excite=False,
-            **kwargs,
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        excite_factor=4,
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Concatenate,
+        padding="same",
+        residual_projection=False,
+        squeeze_and_excite=False,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.activation = activation
@@ -104,17 +105,17 @@ class ResidualBottleneckBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation="relu",
-            bias_initializer="zeros",
-            filters=16,
-            kernel_initializer="glorot_uniform",
-            kernel_size=(3, 3),
-            merge=layers.Concatenate,
-            neck_filters=None,
-            padding="same",
-            residual_projection=False,
-            **kwargs,
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Concatenate,
+        neck_filters=None,
+        padding="same",
+        residual_projection=False,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.activation = activation
@@ -174,16 +175,16 @@ class DenseBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation="relu",
-            bias_initializer="zeros",
-            depth=2,
-            filters=16,
-            kernel_initializer="glorot_uniform",
-            kernel_size=(3, 3),
-            merge=layers.Concatenate,
-            padding="same",
-            **kwargs,
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        depth=2,
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Concatenate,
+        padding="same",
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.activation = activation
@@ -221,16 +222,16 @@ class SparseBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation="relu",
-            bias_initializer="zeros",
-            depth=4,
-            filters=16,
-            kernel_initializer="glorot_uniform",
-            kernel_size=(3, 3),
-            merge=layers.Concatenate,
-            padding="same",
-            **kwargs,
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        depth=4,
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Concatenate,
+        padding="same",
+        **kwargs,
     ):
         """
         Args:
@@ -290,16 +291,16 @@ class FractalBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation="relu",
-            bias_initializer="zeros",
-            depth=4,
-            filters=16,
-            kernel_initializer="glorot_uniform",
-            kernel_size=(3, 3),
-            merge=layers.Concatenate,
-            padding="same",
-            **kwargs,
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        depth=4,
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Concatenate,
+        padding="same",
+        **kwargs,
     ):
         """
         Args:
@@ -387,17 +388,17 @@ class DilationBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation="selu",
-            bias_initializer="zeros",
-            dilations=None,
-            filters=16,
-            kernel_initializer="glorot_uniform",
-            kernel_size=(3, 3),
-            merge=layers.Add,
-            padding="same",
-            skip_connection=False,
-            **kwargs,
+        self,
+        activation="selu",
+        bias_initializer="zeros",
+        dilations=None,
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Add,
+        padding="same",
+        skip_connection=False,
+        **kwargs,
     ):
         """
         Args:
@@ -455,17 +456,17 @@ class FireBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation="relu",
-            bias_initializer="zeros",
-            e1_filters=4,
-            e3_filters=4,
-            kernel_initializer="glorot_uniform",
-            kernel_size=(3, 3),
-            merge=layers.Concatenate,
-            padding="same",
-            s1_filters=3,
-            **kwargs,
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        e1_filters=4,
+        e3_filters=4,
+        kernel_initializer="glorot_uniform",
+        kernel_size=(3, 3),
+        merge=layers.Concatenate,
+        padding="same",
+        s1_filters=3,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.activation = activation
@@ -505,18 +506,17 @@ class FireBlock(layers.Layer):
 
     def call(self, inputs, **kwargs):
         pred = self.squeeze(inputs)
-        pred = self.merge([
-            self.excitation_1(pred),
-            self.excitation_2(pred),
-        ])
+        pred = self.merge([self.excitation_1(pred), self.excitation_2(pred),])
         return pred
 
 
-register_custom_objects([
-    DenseBlock,
-    DilationBlock,
-    FireBlock,
-    FractalBlock,
-    ResidualBlock,
-    ResidualBottleneckBlock,
-])
+register_custom_objects(
+    [
+        DenseBlock,
+        DilationBlock,
+        FireBlock,
+        FractalBlock,
+        ResidualBlock,
+        ResidualBottleneckBlock,
+    ]
+)

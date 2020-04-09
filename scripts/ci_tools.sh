@@ -12,10 +12,10 @@ function human() {
 
 function non_human() {
     printf "\n\nOrganizing imports with isort.\n"
-    python -m isort setup.py vailtools/**/*.py tests/**/*.py
+    python -m isort vailtools/**/*.py tests/**/*.py
 
     printf "\n\nFormatting code with black.\n"
-    python -m black setup.py vailtools tests
+    python -m black vailtools tests
 }
 
 

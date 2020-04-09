@@ -5,6 +5,7 @@ learning tasks.
 """
 
 import numpy as np
+
 import tensorflow.keras.backend as K
 from tensorflow.keras import layers
 
@@ -52,7 +53,7 @@ class SnailDenseBlock(layers.Layer):
     """
 
     def __init__(
-            self, filters, dilation_rate, gate_merge=layers.Concatenate, **kwargs,
+        self, filters, dilation_rate, gate_merge=layers.Concatenate, **kwargs,
     ):
         super().__init__(**kwargs)
         self.filters = filters

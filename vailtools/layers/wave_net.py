@@ -10,19 +10,19 @@ class WaveNetBlock(layers.Layer):
     """
 
     def __init__(
-            self,
-            activation="tanh",
-            bias_initializer="zeros",
-            dilation_rate=1,
-            filters=16,
-            gate_activation="sigmoid",
-            gate_merge=layers.Multiply,
-            kernel_initializer="glorot_uniform",
-            kernel_size=3,
-            padding='causal',
-            project=True,
-            skip_merge=layers.Add,
-            **kwargs,
+        self,
+        activation="tanh",
+        bias_initializer="zeros",
+        dilation_rate=1,
+        filters=16,
+        gate_activation="sigmoid",
+        gate_merge=layers.Multiply,
+        kernel_initializer="glorot_uniform",
+        kernel_size=3,
+        padding="causal",
+        project=True,
+        skip_merge=layers.Add,
+        **kwargs,
     ):
         """
         Args:
@@ -90,7 +90,7 @@ class WaveNetBlock(layers.Layer):
                 bias_initializer=self.bias_initializer,
                 filters=self.filters,
                 kernel_initializer=self.kernel_initializer,
-                kernel_size=1
+                kernel_size=1,
             )
 
         self.gate_merge = gate_merge()

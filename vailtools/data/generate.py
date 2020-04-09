@@ -3,10 +3,7 @@ from skimage import transform
 
 
 def pickup_sticks_image(
-        n_sticks=15,
-        lenth_range=(80, 150),
-        width_range=(10, 20),
-        image_dims=(256, 256, 3),
+    n_sticks=15, lenth_range=(80, 150), width_range=(10, 20), image_dims=(256, 256, 3),
 ):
     image = np.zeros(image_dims)
     labels = np.zeros(image_dims)
@@ -24,7 +21,9 @@ def pickup_sticks_image(
         stick_image[:stick_length, :stick_width] = stick_color
 
         # Transform image
-        stick_transform = transform.AffineTransform(rotation=stick_rotation, translation=stick_pos)
+        stick_transform = transform.AffineTransform(
+            rotation=stick_rotation, translation=stick_pos
+        )
         stick_image_trans = transform.warp(stick_image, stick_transform.inverse)
 
         # Add new stick to composite image
@@ -35,13 +34,13 @@ def pickup_sticks_image(
     return image, labels
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Visual confirmation of image generation
     import matplotlib.pyplot as plt
 
     image, labels = pickup_sticks_image()
     fig, axes = plt.subplots(1, 2, figsize=(12.8, 9.6))
-    axes[0].imshow(image, origin='lower')
-    axes[1].imshow(labels / labels.max(), origin='lower')
+    axes[0].imshow(image, origin="lower")
+    axes[1].imshow(labels / labels.max(), origin="lower")
     plt.show()
-    plt.close('all')
+    plt.close("all")

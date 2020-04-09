@@ -1,6 +1,5 @@
 from tensorflow import keras
 from tensorflow.keras.datasets import mnist
-
 from vailtools.callbacks import CyclicLRScheduler
 
 (train_x, train_y), _ = mnist.load_data()
