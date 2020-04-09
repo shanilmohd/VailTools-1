@@ -46,7 +46,7 @@ class ResidualBlock(layers.Layer):
             residual_projection: (bool)
                 Toggles the use a linear projection on the residual connection.
             se_reduce_factor: (int)
-                Reduction ratio passed to SEBlock.
+                Reduction ratio passed to SqueezeExciteBlock.
             squeeze_and_excite: (bool)
                 Toggles the use of a SE block between the convolutions and residual merge.
             **kwargs:
@@ -54,12 +54,12 @@ class ResidualBlock(layers.Layer):
         super().__init__(**kwargs)
         self.activation = activation
         self.bias_initializer = bias_initializer
-        self.filters = int(filters)
+        self.filters = filters
         self.kernel_initializer = kernel_initializer
         self.kernel_size = kernel_size
         self.padding = padding
         self.residual_projection = residual_projection
-        self.se_reduce_factor = int(se_reduce_factor)
+        self.se_reduce_factor = se_reduce_factor
         self.squeeze_and_excite = squeeze_and_excite
 
         self.conv_1 = layers.Conv2D(
@@ -80,7 +80,7 @@ class ResidualBlock(layers.Layer):
         )
 
         if self.squeeze_and_excite:
-            self.se_block = SEBlock(
+            self.se_block = SqueezeExciteBlock(
                 reduce_factor=self.se_reduce_factor, width=self.filters,
             )
 
@@ -148,7 +148,7 @@ class ResidualBottleneckBlock(layers.Layer):
             residual_projection: (bool)
                 Toggles the use a linear projection on the residual connection.
             se_reduce_factor: (int)
-                Reduction ratio passed to SEBlock.
+                Reduction ratio passed to SqueezeExciteBlock.
             squeeze_and_excite: (bool)
                 Toggles the use of a SE block between the convolutions and residual merge.
             **kwargs:
@@ -190,7 +190,7 @@ class ResidualBottleneckBlock(layers.Layer):
         )
 
         if self.squeeze_and_excite:
-            self.se_block = SEBlock(
+            self.se_block = SqueezeExciteBlock(
                 reduce_factor=self.excite_factor, width=self.filters,
             )
 
@@ -214,7 +214,7 @@ class ResidualBottleneckBlock(layers.Layer):
         return self.merge([inputs, pred])
 
 
-class SEBlock(layers.Layer):
+class SqueezeExciteBlock(layers.Layer):
     """
     Implements the Squeeze and Excitation block discussed in:
         https://arxiv.org/abs/1709.01507
@@ -250,8 +250,8 @@ class SEBlock(layers.Layer):
         super().__init__(**kwargs)
         self.activation = activation
         self.bias_initializer = bias_initializer
-        self.excite_factor = int(reduce_factor)
-        self.width = int(width)
+        self.excite_factor = reduce_factor
+        self.width = width
         self.kernel_initializer = kernel_initializer
 
         self.squeeze = layers.GlobalAveragePooling2D()
@@ -667,13 +667,113 @@ class FireBlock(layers.Layer):
         return self.merge([self.expand_1(pred), self.expand_3(pred)])
 
 
+class GlobalContextBlock(layers.Layer):
+    """
+    Implements the Global Context Module discussed in:
+        https://arxiv.org/abs/1904.11492
+    """
+
+    def __init__(
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        filters=16,
+        kernel_initializer="glorot_uniform",
+        merge=layers.Add,
+        project_inputs=False,
+        reduction_factor=4,
+        **kwargs,
+    ):
+        """
+        Args:
+            activation: (str or Callable)
+                Name or instance of a keras activation function.
+            bias_initializer: (str or Callable)
+                Name or instance of a keras.initializers.Initializer.
+            filters: (None or int)
+                Number of filters used in the expand convolutions.
+            kernel_initializer: (str or Callable)
+                Name or instance of a keras.initializers.Initializer.
+            merge: (keras.layers.Layer)
+                Layer used to merge branches of computation.
+            padding: (str)
+                Convolution padding strategy.
+            project_inputs: (bool)
+                Applies a linear projection to the inputs.
+                Required when filters does not equal the channel dimension of the inputs.
+            reduction_factor: (int)
+                Determines the number of filters in the first transform convolution.
+            **kwargs:
+        """
+        super().__init__(**kwargs)
+        self.activation = activation
+        self.bias_initializer = bias_initializer
+        self.filters = filters
+        self.kernel_initializer = kernel_initializer
+        self.project_inputs = project_inputs
+        self.reduction_factor = reduction_factor
+
+        self.context = layers.Conv2D(
+            activation="softmax",
+            bias_initializer=self.bias_initializer,
+            filters=1,
+            kernel_initializer=self.kernel_initializer,
+            kernel_size=(1, 1),
+        )
+        self.context_combine = layers.Dot(axes=[1, 2])
+        self.transform_1 = layers.Conv2D(
+            activation=self.activation,
+            bias_initializer=self.bias_initializer,
+            filters=self.filters // self.reduction_factor,
+            kernel_initializer=self.kernel_initializer,
+            kernel_size=(1, 1),
+        )
+        self.ln = layers.LayerNormalization()
+        self.transform_activation = layers.Activation(self.activation)
+        self.transform_2 = layers.Conv2D(
+            activation=self.activation,
+            bias_initializer=self.bias_initializer,
+            filters=self.filters,
+            kernel_initializer=self.kernel_initializer,
+            kernel_size=(1, 1),
+        )
+
+        if self.project_inputs:
+            self.projection = layers.Conv2D(
+                filters=self.filters,
+                kernel_size=(1, 1),
+                kernel_initializer=self.kernel_initializer,
+                bias_initializer=self.bias_initializer,
+            )
+
+        self.merge = merge()
+
+    def call(self, inputs, **kwargs):
+        if self.project_inputs:
+            inputs = self.projection(inputs)
+
+        # Context modelling
+        pred = self.context(inputs)
+        pred = self.context_combine([inputs, pred])
+
+        # Transform
+        pred = self.transform_1(pred)
+        pred = self.ln(pred)
+        pred = self.transform_activation(pred)
+        pred = self.transform_2(pred)
+
+        return self.merge([inputs, pred])
+
+
 register_custom_objects(
     [
         DenseBlock,
         DilationBlock,
         FireBlock,
         FractalBlock,
+        GlobalContextBlock,
         ResidualBlock,
         ResidualBottleneckBlock,
+        SqueezeExciteBlock,
     ]
 )
