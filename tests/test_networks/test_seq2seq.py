@@ -1,5 +1,4 @@
 import numpy as np
-
 from vailtools.networks import snail_control, snail_mdp, snail_visual, wave_net
 
 

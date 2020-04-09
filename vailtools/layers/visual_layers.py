@@ -1,5 +1,4 @@
 import numpy as np
-
 from tensorflow.keras import layers
 
 from ..utils import register_custom_objects
@@ -18,25 +17,49 @@ class ResidualBlock(layers.Layer):
         self,
         activation="relu",
         bias_initializer="zeros",
-        excite_factor=4,
         filters=16,
         kernel_initializer="glorot_uniform",
         kernel_size=(3, 3),
         merge=layers.Concatenate,
         padding="same",
         residual_projection=False,
+        se_reduce_factor=4,
         squeeze_and_excite=False,
         **kwargs,
     ):
+        """
+        Args:
+            activation: (str or Callable)
+                Name or instance of a keras activation function.
+            bias_initializer: (str or Callable)
+                Name or instance of a keras.initializers.Initializer.
+            filters: (int)
+                Number of filters per convolution.
+            kernel_initializer: (str or Callable)
+                Name or instance of a keras.initializers.Initializer.
+            kernel_size: (tuple[int] or int)
+                Convolution filter dimensions.
+            merge: (keras.layers.Layer)
+                Layer used to merge branches of computation.
+            padding: (str)
+                Convolution padding strategy.
+            residual_projection: (bool)
+                Toggles the use a linear projection on the residual connection.
+            se_reduce_factor: (int)
+                Reduction ratio passed to SEBlock.
+            squeeze_and_excite: (bool)
+                Toggles the use of a SE block between the convolutions and residual merge.
+            **kwargs:
+        """
         super().__init__(**kwargs)
         self.activation = activation
         self.bias_initializer = bias_initializer
-        self.excite_factor = int(excite_factor)
         self.filters = int(filters)
         self.kernel_initializer = kernel_initializer
         self.kernel_size = kernel_size
         self.padding = padding
         self.residual_projection = residual_projection
+        self.se_reduce_factor = int(se_reduce_factor)
         self.squeeze_and_excite = squeeze_and_excite
 
         self.conv_1 = layers.Conv2D(
@@ -57,21 +80,9 @@ class ResidualBlock(layers.Layer):
         )
 
         if self.squeeze_and_excite:
-            self.squeeze = layers.GlobalAveragePooling2D()
-            self.excite_1 = layers.Dense(
-                self.filters // self.excite_factor,
-                activation=self.activation,
-                bias_initializer=self.bias_initializer,
-                kernel_initializer=self.kernel_initializer,
+            self.se_block = SEBlock(
+                reduce_factor=self.se_reduce_factor, width=self.filters,
             )
-            self.excite_2 = layers.Dense(
-                self.filters,
-                activation="sigmoid",
-                bias_initializer=self.bias_initializer,
-                kernel_initializer=self.kernel_initializer,
-            )
-            self.reshape = layers.Reshape((1, 1, self.filters))
-            self.scale = layers.Lambda(lambda x, y: x * y)
 
         if self.residual_projection:
             self.projection = layers.Conv2D(
@@ -85,14 +96,8 @@ class ResidualBlock(layers.Layer):
     def call(self, inputs, **kwargs):
         pred = self.conv_1(inputs)
         pred = self.conv_2(pred)
-
         if self.squeeze_and_excite:
-            se_pred = self.squeeze(pred)
-            se_pred = self.excite_1(se_pred)
-            se_pred = self.excite_2(se_pred)
-            se_pred = self.reshape(se_pred)
-            pred = self.scale(pred, se_pred)
-
+            pred = self.se_block(pred)
         if self.residual_projection:
             inputs = self.projection(inputs)
         return self.merge([inputs, pred])
@@ -102,6 +107,9 @@ class ResidualBottleneckBlock(layers.Layer):
     """
     Implements the residual bottleneck block discussed in:
         https://arxiv.org/abs/1512.03385
+
+    Squeeze and Excitation module can be enabled:
+        https://arxiv.org/abs/1709.01507
     """
 
     def __init__(
@@ -115,8 +123,36 @@ class ResidualBottleneckBlock(layers.Layer):
         neck_filters=None,
         padding="same",
         residual_projection=False,
+        se_reduce_factor=4,
+        squeeze_and_excite=False,
         **kwargs,
     ):
+        """
+        Args:
+            activation: (str or Callable)
+                Name or instance of a keras activation function.
+            bias_initializer: (str or Callable)
+                Name or instance of a keras.initializers.Initializer.
+            filters: (int)
+                Number of filters per convolution following the bottleneck.
+            kernel_initializer: (str or Callable)
+                Name or instance of a keras.initializers.Initializer.
+            kernel_size: (tuple[int] or int)
+                Convolution filter dimensions.
+            merge: (keras.layers.Layer)
+                Layer used to merge branches of computation.
+            neck_filters: (int)
+                Number of filters per convolution in the bottleneck.
+            padding: (str)
+                Convolution padding strategy.
+            residual_projection: (bool)
+                Toggles the use a linear projection on the residual connection.
+            se_reduce_factor: (int)
+                Reduction ratio passed to SEBlock.
+            squeeze_and_excite: (bool)
+                Toggles the use of a SE block between the convolutions and residual merge.
+            **kwargs:
+        """
         super().__init__(**kwargs)
         self.activation = activation
         self.bias_initializer = bias_initializer
@@ -126,6 +162,8 @@ class ResidualBottleneckBlock(layers.Layer):
         self.neck_filters = neck_filters or max(filters // 4, 1)
         self.padding = padding
         self.residual_projection = residual_projection
+        self.se_reduce_factor = se_reduce_factor
+        self.squeeze_and_excite = squeeze_and_excite
 
         self.compress_conv = layers.Conv2D(
             activation=self.activation,
@@ -150,6 +188,12 @@ class ResidualBottleneckBlock(layers.Layer):
             kernel_initializer=self.kernel_initializer,
             bias_initializer=self.bias_initializer,
         )
+
+        if self.squeeze_and_excite:
+            self.se_block = SEBlock(
+                reduce_factor=self.excite_factor, width=self.filters,
+            )
+
         if self.residual_projection:
             self.projection = layers.Conv2D(
                 filters=self.filters,
@@ -163,8 +207,74 @@ class ResidualBottleneckBlock(layers.Layer):
         pred = self.compress_conv(inputs)
         pred = self.bottleneck_conv(pred)
         pred = self.expand_conv(pred)
+        if self.squeeze_and_excite:
+            pred = self.se_block(pred)
         if self.residual_projection:
             inputs = self.projection(inputs)
+        return self.merge([inputs, pred])
+
+
+class SEBlock(layers.Layer):
+    """
+    Implements the Squeeze and Excitation block discussed in:
+        https://arxiv.org/abs/1709.01507
+    """
+
+    def __init__(
+        self,
+        activation="relu",
+        bias_initializer="zeros",
+        kernel_initializer="glorot_uniform",
+        merge=layers.Multiply,
+        reduce_factor=4,
+        width=16,
+        **kwargs,
+    ):
+        """
+        Args:
+            activation: (str or Callable)
+                Name or instance of a keras activation function.
+            bias_initializer: (str or Callable)
+                Name or instance of a keras.initializers.Initializer.
+            depth: (int)
+                Number of convolutions used in block construction.
+            kernel_initializer: (str or Callable)
+                Name or instance of a keras.initializers.Initializer.
+            merge: (keras.layers.Layer)
+                Layer used to merge branches of computation.
+            reduce_factor: (int)
+                Determines the number of neurons on the smaller excite layer.
+            width: (int)
+                Number of neurons in the larger excite layer.
+        """
+        super().__init__(**kwargs)
+        self.activation = activation
+        self.bias_initializer = bias_initializer
+        self.excite_factor = int(reduce_factor)
+        self.width = int(width)
+        self.kernel_initializer = kernel_initializer
+
+        self.squeeze = layers.GlobalAveragePooling2D()
+        self.excite_1 = layers.Dense(
+            self.width // self.excite_factor,
+            activation=self.activation,
+            bias_initializer=self.bias_initializer,
+            kernel_initializer=self.kernel_initializer,
+        )
+        self.excite_2 = layers.Dense(
+            self.width,
+            activation="sigmoid",
+            bias_initializer=self.bias_initializer,
+            kernel_initializer=self.kernel_initializer,
+        )
+        self.reshape = layers.Reshape((1, 1, self.filters))
+        self.merge = merge()
+
+    def call(self, inputs, **kwargs):
+        pred = self.squeeze(inputs)
+        pred = self.excite_1(pred)
+        pred = self.excite_2(pred)
+        pred = self.reshape(pred)
         return self.merge([inputs, pred])
 
 
@@ -186,6 +296,25 @@ class DenseBlock(layers.Layer):
         padding="same",
         **kwargs,
     ):
+        """
+        Args:
+            activation: (str or Callable)
+                Name or instance of a keras activation function.
+            bias_initializer: (str or Callable)
+                Name or instance of a keras.initializers.Initializer.
+            depth: (int)
+                Number of convolutions used in block construction.
+            filters: (int)
+                Number of filters per convolution.
+            kernel_initializer: (str or Callable)
+                Name or instance of a keras.initializers.Initializer.
+            kernel_size: (tuple[int] or int)
+                Dimensions of the convolution filters.
+            merge: (keras.layers.Layer)
+                Layer used to merge branches of computation.
+            padding: (str)
+                Convolution padding strategy.
+        """
         super().__init__(**kwargs)
         self.activation = activation
         self.bias_initializer = bias_initializer
@@ -236,21 +365,21 @@ class SparseBlock(layers.Layer):
         """
         Args:
             activation: (str or Callable)
-                Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+                Name or instance of a keras activation function.
             bias_initializer: (str or Callable)
                 Name or instance of a keras.initializers.Initializer.
             depth: (int)
                 Number of convolutions used in block construction.
             filters: (int)
-                Number of filters used in each convolution.
+                Number of filters per convolution.
             kernel_initializer: (str or Callable)
                 Name or instance of a keras.initializers.Initializer.
             kernel_size: (tuple[int] or int)
                 Dimensions of the convolution filters.
             merge: (keras.layers.Layer)
-                Keras layer that merges the input and output branches of a residual block.
+                Layer used to merge branches of computation.
             padding: (str)
-                Padding strategy applied during convolution operations.
+                Convolution padding strategy.
         """
         super().__init__(**kwargs)
         self.activation = activation
@@ -305,21 +434,24 @@ class FractalBlock(layers.Layer):
         """
         Args:
             activation: (str or Callable)
-                Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+                Name or instance of a keras activation function.
             bias_initializer: (str or Callable)
                 Name or instance of a keras.initializers.Initializer.
             depth: (int)
-                Number of convolutions used in block construction.
+                Fractal block rank.
+                Rank 1 is a residual block.
+                Rank 2 is a residual block of residual blocks.
+                See Figure 1 of the paper for more details.
             filters: (int)
-                Number of filters used in each convolution.
+                Number of filters per convolution.
             kernel_initializer: (str or Callable)
                 Name or instance of a keras.initializers.Initializer.
             kernel_size: (tuple[int] or int)
-                Dimensions of the convolution filters.
+                Convolution filter dimensions.
             merge: (keras.layers.Layer)
-                Keras layer that merges the input and output branches of a residual block.
+                Layer used to merge branches of computation.
             padding: (str)
-                Padding strategy applied during convolution operations.
+                Convolution padding strategy.
         """
         super().__init__(**kwargs)
         self.activation = activation
@@ -403,21 +535,21 @@ class DilationBlock(layers.Layer):
         """
         Args:
             activation: (str or Callable)
-                Name of a keras activation function or an instance of a keras/Tensorflow activation function.
+                Name or instance of a keras activation function.
             bias_initializer: (str or Callable)
                 Name or instance of a keras.initializers.Initializer.
             dilations: (Iterable[int])
-                Dilation rate used in each convolution.
+                Convolution dilation rate.
             filters: (int)
-                Number of filters used in each convolution.
+                Number of filters per convolution.
             kernel_initializer: (str or Callable)
                 Name or instance of a keras.initializers.Initializer.
             kernel_size: (tuple[int] or int)
-                Dimensions of the convolution filters.
+                Convolution filter dimensions.
             merge: (keras.layers.Layer)
-                Keras layer that merges the input and output branches of a residual block.
+                Layer used to merge branches of computation.
             padding: (str)
-                Padding strategy applied during convolution operations.
+                Convolution padding strategy.
         """
         super().__init__(**kwargs)
         self.activation = activation
@@ -459,42 +591,68 @@ class FireBlock(layers.Layer):
         self,
         activation="relu",
         bias_initializer="zeros",
-        e1_filters=4,
-        e3_filters=4,
+        e1_filters=None,
+        e3_filters=None,
+        filters=16,
         kernel_initializer="glorot_uniform",
         kernel_size=(3, 3),
         merge=layers.Concatenate,
         padding="same",
-        s1_filters=3,
+        s1_filters=None,
         **kwargs,
     ):
+        """
+        Args:
+            activation: (str or Callable)
+                Name or instance of a keras activation function.
+            bias_initializer: (str or Callable)
+                Name or instance of a keras.initializers.Initializer.
+            e1_filters: (None or int)
+                Number of filters used in the 1x1 expand convolution.
+            e3_filters: (None or int)
+                Number of filters used in the 3x3 expand convolution.
+            filters: (None or int)
+                Number of filters used in the expand convolutions.
+            kernel_initializer: (str or Callable)
+                Name or instance of a keras.initializers.Initializer.
+            kernel_size: (tuple[int] or int)
+                Convolution filter dimensions.
+            merge: (keras.layers.Layer)
+                Layer used to merge branches of computation.
+            padding: (str)
+                Convolution padding strategy.
+            s1_filters: (None or int)
+                Number of filters used in the 1x1 squeeze convolution.
+            **kwargs:
+        """
         super().__init__(**kwargs)
         self.activation = activation
         self.bias_initializer = bias_initializer
-        self.e1_filters = e1_filters
-        self.e3_filters = e3_filters
+        self.e1_filters = e1_filters or filters
+        self.e3_filters = e3_filters or filters
+        self.filters = filters
         self.kernel_initializer = kernel_initializer
         self.kernel_size = kernel_size
         self.padding = padding
-        self.s1_filters = s1_filters
+        self.s1_filters = s1_filters or filters // 4
 
         self.squeeze = layers.Conv2D(
             activation=self.activation,
             bias_initializer=self.bias_initializer,
             filters=self.s1_filters,
             kernel_initializer=self.kernel_initializer,
-            kernel_size=self.kernel_size,
+            kernel_size=(1, 1),
             padding=self.padding,
         )
-        self.excitation_1 = layers.Conv2D(
+        self.expand_1 = layers.Conv2D(
             activation=self.activation,
             bias_initializer=self.bias_initializer,
             filters=self.e1_filters,
             kernel_initializer=self.kernel_initializer,
-            kernel_size=self.kernel_size,
+            kernel_size=(1, 1),
             padding=self.padding,
         )
-        self.excitation_3 = layers.Conv2D(
+        self.expand_3 = layers.Conv2D(
             activation=self.activation,
             bias_initializer=self.bias_initializer,
             filters=self.e3_filters,
@@ -506,8 +664,7 @@ class FireBlock(layers.Layer):
 
     def call(self, inputs, **kwargs):
         pred = self.squeeze(inputs)
-        pred = self.merge([self.excitation_1(pred), self.excitation_2(pred),])
-        return pred
+        return self.merge([self.expand_1(pred), self.expand_3(pred)])
 
 
 register_custom_objects(

@@ -5,7 +5,6 @@ learning tasks.
 """
 
 import numpy as np
-
 import tensorflow.keras.backend as K
 from tensorflow.keras import layers
 

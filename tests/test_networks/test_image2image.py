@@ -1,5 +1,4 @@
 import numpy as np
-
 from vailtools import networks
 
 train_x = np.random.random(size=(4096, 32, 32, 1))

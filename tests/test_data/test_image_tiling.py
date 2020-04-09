@@ -1,5 +1,4 @@
 import numpy as np
-
 from tensorflow.keras.datasets import mnist
 from vailtools.data import image_tiling
 
