@@ -5,7 +5,9 @@ from .visual_layers import (
     DenseBlock,
     DilationBlock,
     FractalBlock,
+    GlobalContextBlock,
     ResidualBlock,
     ResidualBottleneckBlock,
+    SqueezeExciteBlock,
 )
 from .wave_net import WaveNetBlock
