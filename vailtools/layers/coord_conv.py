@@ -48,7 +48,7 @@ class _CoordinateChannel(Layer):
     """
 
     def __init__(self, rank, use_radius=False, data_format=None, **kwargs):
-        super(_CoordinateChannel, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         if data_format not in [None, "channels_first", "channels_last"]:
             raise ValueError(
