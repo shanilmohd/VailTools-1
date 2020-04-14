@@ -776,6 +776,7 @@ register_custom_objects(
         GlobalContextBlock,
         ResidualBlock,
         ResidualBottleneckBlock,
+        SparseBlock,
         SqueezeExciteBlock,
     ]
 )
