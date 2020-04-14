@@ -1,28 +1,29 @@
-from tensorflow import keras
-from tensorflow.keras.datasets import mnist
+import numpy as np
+from tensorflow.keras import backend as K
+
 from vailtools.callbacks import CyclicLRScheduler
 
-(train_x, train_y), _ = mnist.load_data()
-train_x = train_x[..., None].astype(float)
-train_x, train_y = train_x[:2048], train_y[:2048]
+
+class DummyModel:
+    def __init__(self):
+        self.optimizer = DummyOptimizer()
+
+
+class DummyOptimizer:
+    def __init__(self):
+        self.lr = K.variable(0.0)
 
 
 def test_cyclic_lr_scheduler():
-    model = keras.models.Sequential(
-        [
-            keras.layers.Conv2D(32, kernel_size=3, padding="same", activation="relu"),
-            keras.layers.Conv2D(32, kernel_size=3, padding="same", activation="relu"),
-            keras.layers.Conv2D(10, kernel_size=3, padding="same", activation="relu"),
-            keras.layers.GlobalAveragePooling2D(),
-            keras.layers.Activation("softmax"),
-        ]
-    )
-    model.compile(loss="categorical_crossentropy", optimizer="adam")
+    lr_schedule = CyclicLRScheduler(cycle_period=64)
+    lr_schedule.model = DummyModel()
+    lrs = []
+    for i in range(65):
+        lr_schedule.on_batch_begin(i)
+        lrs.append(float(K.get_value(lr_schedule.model.optimizer.lr)))
 
-    model.fit(
-        train_x,
-        keras.utils.to_categorical(train_y),
-        batch_size=64,
-        epochs=5,
-        callbacks=[CyclicLRScheduler(cycle_period=2048 // 64)],
-    )
+    # Maximum LR value occurs at the start of every cycle
+    assert np.argmax(lrs) == 0
+    # Minimum LR value at the end of every cycle
+    # New cycle starts on step 64, since cycle_period=64
+    assert np.argmin(lrs) == 63

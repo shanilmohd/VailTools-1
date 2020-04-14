@@ -4,10 +4,12 @@ from .snail import SnailAttentionBlock, SnailDenseBlock, SnailTCBlock
 from .visual_layers import (
     DenseBlock,
     DilationBlock,
+    FireBlock,
     FractalBlock,
     GlobalContextBlock,
     ResidualBlock,
     ResidualBottleneckBlock,
+    SparseBlock,
     SqueezeExciteBlock,
 )
 from .wave_net import WaveNetBlock

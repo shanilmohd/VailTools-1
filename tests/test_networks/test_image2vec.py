@@ -1,10 +1,9 @@
-from tensorflow.keras.datasets import mnist
+import numpy as np
+
 from vailtools import networks
 
-(train_x, train_y), _ = mnist.load_data()
-train_x = train_x[..., None].astype(float)
-
-train_x, train_y = train_x[:2048], train_y[:2048]
+train_x = np.random.random(size=(32, 28, 28, 1))
+train_y = np.random.randint(10, size=32)
 
 
 def test_res_net():
@@ -13,4 +12,4 @@ def test_res_net():
     )
     model.compile(optimizer="adam", loss="sparse_categorical_crossentropy")
     model.summary()
-    model.fit(train_x, train_y, epochs=3)
+    model.fit(train_x, train_y, epochs=1)

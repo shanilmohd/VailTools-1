@@ -45,15 +45,7 @@ class CyclicLRScheduler(Callback):
         self.step = 0
 
     def on_batch_begin(self, batch, logs=None):
-        if not hasattr(self.model.optimizer, "lr"):
-            raise ValueError('Optimizer must have a "lr" attribute.')
-
         lr = self.schedule(self.step, lr=float(K.get_value(self.model.optimizer.lr)))
-
-        if not isinstance(lr, (float, np.float32, np.float64)):
-            raise ValueError('The output of the "schedule" function should be float.')
-
         K.set_value(self.model.optimizer.lr, lr)
-
         logging.info(f"Step {self.step}: learning rate = {lr}.")
         self.step += 1
