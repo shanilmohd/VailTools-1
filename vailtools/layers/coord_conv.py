@@ -224,8 +224,8 @@ class _CoordinateChannel(Layer):
             "use_radius": self.use_radius,
             "data_format": self.data_format,
         }
-        base_config = super(_CoordinateChannel, self).get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        base_config = super().get_config()
+        return {**base_config, **config}
 
 
 class CoordinateChannel1D(_CoordinateChannel):
@@ -253,12 +253,12 @@ class CoordinateChannel1D(_CoordinateChannel):
     """
 
     def __init__(self, data_format=None, **kwargs):
-        super(CoordinateChannel1D, self).__init__(
+        super().__init__(
             rank=1, use_radius=False, data_format=data_format, **kwargs
         )
 
     def get_config(self):
-        config = super(CoordinateChannel1D, self).get_config()
+        config = super().get_config()
         config.pop("rank")
         config.pop("use_radius")
         return config
@@ -305,12 +305,12 @@ class CoordinateChannel2D(_CoordinateChannel):
     """
 
     def __init__(self, use_radius=False, data_format=None, **kwargs):
-        super(CoordinateChannel2D, self).__init__(
+        super().__init__(
             rank=2, use_radius=use_radius, data_format=data_format, **kwargs
         )
 
     def get_config(self):
-        config = super(CoordinateChannel2D, self).get_config()
+        config = super().get_config()
         config.pop("rank")
         return config
 
@@ -355,12 +355,12 @@ class CoordinateChannel3D(_CoordinateChannel):
     """
 
     def __init__(self, data_format=None, **kwargs):
-        super(CoordinateChannel3D, self).__init__(
+        super().__init__(
             rank=3, use_radius=False, data_format=data_format, **kwargs
         )
 
     def get_config(self):
-        config = super(CoordinateChannel3D, self).get_config()
+        config = super().get_config()
         config.pop("rank")
         config.pop("use_radius")
         return config

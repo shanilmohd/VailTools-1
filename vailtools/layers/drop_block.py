@@ -18,7 +18,7 @@ class DropBlock1D(keras.layers.Layer):
             sync_channels: Whether to use the same dropout for all channels.
             **kwargs: Arguments for parent class.
         """
-        super().__init__(**kwargs)
+        super().__init__(**kwargs, dynamic=True)
         self.block_size = block_size
         self.rate = rate
         self.sync_channels = sync_channels
@@ -45,17 +45,6 @@ class DropBlock1D(keras.layers.Layer):
 
         """
         return mask
-
-    def compute_output_shape(self, input_shape):
-        """
-
-        Args:
-          input_shape: 
-
-        Returns:
-
-        """
-        return input_shape
 
     def _get_gamma(self, feature_dim):
         """Get the number of activation units to drop
@@ -164,7 +153,7 @@ class DropBlock2D(keras.layers.Layer):
             sync_channels: Whether to use the same dropout for all channels.
             **kwargs: Arguments for parent class.
         """
-        super().__init__(**kwargs)
+        super().__init__(**kwargs, dynamic=True)
         self.block_size = block_size
         self.rate = rate
         self.sync_channels = sync_channels
