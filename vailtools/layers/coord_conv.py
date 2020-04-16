@@ -97,6 +97,10 @@ class _CoordinateChannel(Layer):
             input_shape = [input_shape[i] for i in range(4)]
             batch_shape, dim1, dim2, channels = input_shape
 
+            # This can probably be shortened to the following (need to test correctness):
+            # xx_range = K.arange(dim1)
+            # xx_range = K.reshape(xx_range, (1, -1, 1, 1))
+            # xx_channels = tf.broadcast_to(xx_range, (batch_shape, dim1, dim2, 1))
             xx_ones = K.ones(K.stack([batch_shape, dim2]), dtype="int32")
             xx_ones = K.expand_dims(xx_ones, axis=-1)
 
