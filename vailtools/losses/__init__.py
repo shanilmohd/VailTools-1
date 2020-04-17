@@ -1,4 +1,3 @@
-from . import numpy_losses
 from .losses import (
     class_mean_iou_loss,
     class_weighted_categorical_crossentropy,

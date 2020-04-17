@@ -1,4 +1,5 @@
 from tensorflow.keras.utils import get_custom_objects
+import numpy as np
 
 
 def register_custom_objects(objects):
@@ -12,3 +13,20 @@ def register_custom_objects(objects):
         objects: Iterable of custom objects to be registered.
     """
     get_custom_objects().update({x.__name__: x for x in objects})
+
+
+def to_categorical(x, num_classes=None):
+    """
+    Converts an N dimensional integer encoded numpy array into an N+1 dimensional
+    one-hot encoded numpy array.
+
+    Args:
+        x: numpy.ndarray
+        num_classes: int
+
+    Returns: numpy.ndarray
+    """
+    x = x.astype(int)
+    if num_classes is None:
+        num_classes = np.max(x) + 1
+    return np.eye(num_classes)[x.astype(int)]
