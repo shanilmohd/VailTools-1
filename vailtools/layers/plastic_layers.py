@@ -313,15 +313,10 @@ class PlasticGRUCell(tf.keras.layers.GRUCell):
                 # biases: bias_z_i, bias_r_i, bias_h_i
                 matrix_x = K.bias_add(matrix_x, input_bias)
 
-            x_z = matrix_x[:, : self.units]
-            x_r = matrix_x[:, self.units : 2 * self.units]
-            x_h = matrix_x[:, 2 * self.units :]
+            x_z, x_r, x_h = array_ops.split(matrix_x, 3, axis=-1)
 
             # Apply plasticity
             x_h = x_h + K.batch_dot(h_tm1, self.plastic_kernel * plastic_vals)
-
-            if 0.0 < self.recurrent_dropout < 1.0:
-                h_tm1 = h_tm1 * rec_dp_mask[0]
 
             if self.reset_after:
                 # hidden state projected by all gate matrices at once
@@ -332,14 +327,15 @@ class PlasticGRUCell(tf.keras.layers.GRUCell):
                 # hidden state projected separately for update/reset and new
                 matrix_inner = K.dot(h_tm1, self.recurrent_kernel[:, : 2 * self.units])
 
-            recurrent_z = matrix_inner[:, : self.units]
-            recurrent_r = matrix_inner[:, self.units : 2 * self.units]
+            recurrent_z, recurrent_r, recurrent_h = array_ops.split(
+                matrix_inner, [self.units, self.units, -1], axis=-1
+            )
 
             z = self.recurrent_activation(x_z + recurrent_z)
             r = self.recurrent_activation(x_r + recurrent_r)
 
             if self.reset_after:
-                recurrent_h = r * matrix_inner[:, 2 * self.units :]
+                recurrent_h = r * recurrent_h
             else:
                 recurrent_h = K.dot(
                     r * h_tm1, self.recurrent_kernel[:, 2 * self.units :]
@@ -348,7 +344,6 @@ class PlasticGRUCell(tf.keras.layers.GRUCell):
             hh = self.activation(x_h + recurrent_h)
         # previous and candidate state mixed by update gate
         h = z * h_tm1 + (1 - z) * hh
-
         # Update plasticity
         plastic_vals = self.plastic_update(self.plastic_lr, h_tm1, h, plastic_vals)
         return h, [h, K.batch_flatten(plastic_vals)]
@@ -595,6 +590,7 @@ class PlasticLSTM(tf.keras.layers.LSTM):
         self.cell = PlasticLSTMCell(
             units,
             activation=activation,
+            activity_regularizer=activity_regularizer,
             bias_constraint=bias_constraint,
             bias_initializer=bias_initializer,
             bias_regularizer=bias_regularizer,
