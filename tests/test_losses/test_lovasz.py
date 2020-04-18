@@ -17,8 +17,10 @@ def test_lovasz_hinge():
 
 def test_lovasz_softmax():
     _, labels = pickup_sticks_image()  # (256, 256, 1)
-    sparse_labels = labels[np.newaxis]   # (1, 256, 256, 1)
-    dense_labels = np.squeeze(to_categorical(sparse_labels), axis=-2)   # (1, 256, 256, classes)
+    sparse_labels = labels[np.newaxis]  # (1, 256, 256, 1)
+    dense_labels = np.squeeze(
+        to_categorical(sparse_labels), axis=-2
+    )  # (1, 256, 256, classes)
     sparse_labels = tf.convert_to_tensor(sparse_labels, tf.float32)
     dense_labels = tf.convert_to_tensor(dense_labels, tf.float32)
     loss = lovasz.lovasz_softmax(sparse_labels, dense_labels, ignore=0, classes="all")

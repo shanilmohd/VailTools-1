@@ -3,7 +3,10 @@ from skimage import transform
 
 
 def pickup_sticks_image(
-    n_sticks: int = 15, lenth_range=(80, 150), width_range=(10, 20), image_dims=(256, 256, 3),
+    n_sticks: int = 15,
+    lenth_range=(80, 150),
+    width_range=(10, 20),
+    image_dims=(256, 256, 3),
 ):
     """
     Generates a RGB image containing randomly created "sticks" on a uniform background.
