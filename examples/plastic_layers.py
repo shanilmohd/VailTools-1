@@ -34,18 +34,10 @@ def main(max_words=1000, max_len=128, batch_size=32, epochs=5):
 
     print('Building model...')
     model = Sequential([
-        Embedding(
-            input_dim=max_words + 1,
-            output_dim=64,
-            input_length=max_len,
-            batch_input_shape=(batch_size, max_len),  # Must specify full batch shape for plastic layers
-        ),
-        PlasticRNN(128, plasticity_rule="alt_oja"),
+        Embedding(input_dim=max_words + 1, output_dim=64),
+        PlasticRNN(128, plasticity_rule="hebb"),
         Dropout(0.5),
-        Dense(
-            num_classes,
-            activation='softmax',
-        ),
+        Dense(num_classes, activation='softmax'),
     ])
 
     model.compile(
@@ -60,7 +52,7 @@ def main(max_words=1000, max_len=128, batch_size=32, epochs=5):
         batch_size=batch_size,
         epochs=epochs,
         verbose=1,
-        validation_split=0.10989,  # Plastic layers require a fixed batch size.
+        validation_split=0.1,
     )
     results = model.evaluate(
         x_test,
