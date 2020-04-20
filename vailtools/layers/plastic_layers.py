@@ -1,11 +1,20 @@
 """
 TODO: Improve documentation.
 TODO: Validate that the plasticity is applied in the correct locations.
+TODO: Validate the correctness of the plasticity updates.
+TODO: Implement GHA/Sanger's rule (https://en.wikipedia.org/wiki/Generalized_Hebbian_Algorithm).
 """
 
 import tensorflow as tf
 import tensorflow.keras.backend as K
-from tensorflow.keras import layers
+from tensorflow.keras import (
+    activations,
+    constraints,
+    initializers,
+    layers,
+    regularizers,
+)
+from tensorflow.python.keras.engine.input_spec import InputSpec
 from tensorflow.python.ops import array_ops
 
 from ..utils import register_custom_objects
@@ -14,8 +23,11 @@ from ..utils import register_custom_objects
 def hebb(lr, prev_output, curr_output, plastic_vals):
     """
     Implements a classic Hebbian plasticity update rule.
+    Only tested where prev_output/curr_output have shape (batch_size, time_steps, features).
+    Appears to be working, but the slicing seems concerning. Why are we throwing out data?
 
-    Currently only tested where prev_output/curr_output have shape (batch_size, time_steps, features).
+    Reference:
+        https://github.com/uber-research/differentiable-plasticity/blob/5bd29a18cc204f0191d17ef1948afe5fb675e803/simple/simple.py#L119
 
     Args:
         lr: float or keras.Tensor, Learning rate / step size for the plasticity update.
@@ -27,7 +39,8 @@ def hebb(lr, prev_output, curr_output, plastic_vals):
         Updated plasticity values.
     """
     return (
-        lr * K.dot(K.expand_dims(prev_output, 2), K.expand_dims(curr_output, 1))
+        lr
+        * K.batch_dot(K.expand_dims(prev_output, 2), K.expand_dims(curr_output, 1))[0]
         + (1 - lr) * plastic_vals
     )
 
@@ -37,6 +50,9 @@ def oja(lr, prev_output, curr_output, plastic_vals):
     Implements Oja's plasticity update rule.
 
     Currently only tested where prev_output/curr_output have shape (batch_size, time_steps, features).
+
+    Reference:
+        https://github.com/uber-research/differentiable-plasticity/blob/5bd29a18cc204f0191d17ef1948afe5fb675e803/maze/maze.py#L195
 
     Args:
         lr: float or keras.Tensor, Learning rate / step size for the plasticity update.
@@ -48,8 +64,40 @@ def oja(lr, prev_output, curr_output, plastic_vals):
         Updated plasticity values.
     """
     return plastic_vals + lr * K.expand_dims(curr_output, 1) * (
-        K.expand_dims(prev_output, 2) - plastic_vals * K.expand_dims(curr_output, 1)
+        K.expand_dims(prev_output[0], 1)
+        - K.dot(plastic_vals, K.expand_dims(curr_output[0], 1))
     )
+
+
+def alt_oja(lr, prev_output, curr_output, plastic_vals):
+    """
+    Oja's plasticity update rule.
+    Alternative implementation. The slicing from the reference code seems incorrect,
+    so I tried to avoid it. This probably has room to improve, but at least it
+    is not throwing out data.
+
+    Currently only tested where prev_output/curr_output have shape (batch_size, time_steps, features).
+
+    Appears to be unstable, may need to tweak the initialization scheme?
+
+    Reference:
+        https://en.wikipedia.org/wiki/Oja%27s_rule
+
+    Args:
+        lr: float or keras.Tensor, Learning rate / step size for the plasticity update.
+        prev_output: keras.Tensor, Pre-synaptic activations.
+        curr_output: keras.Tensor, Post-synaptic activations.
+        plastic_vals: keras.Tensor, Current plasticity values.
+
+    Returns: keras.Tensor
+        Updated plasticity values.
+    """
+    return plastic_vals + lr * K.expand_dims(curr_output, -1) * (
+        K.expand_dims(prev_output, -1) - plastic_vals * K.expand_dims(curr_output, -1)
+    )
+
+
+plasticity_update_rules = {x.__name__: x for x in [hebb, oja, alt_oja]}
 
 
 class PlasticRNNCell(tf.keras.layers.SimpleRNNCell):
@@ -69,9 +117,11 @@ class PlasticRNNCell(tf.keras.layers.SimpleRNNCell):
         self.plastic_kernel = None
         self.plastic_lr = None
         self.plasticity_rule = plasticity_rule
-        self.plastic_update = oja if plasticity_rule == "oja" else hebb
+        self.plastic_update = plasticity_update_rules[plasticity_rule]
 
     def build(self, input_shape):
+        # Plastic kernel has an extra dimension to allow broadcasting over different
+        # plastic values.
         self.plastic_kernel = self.add_weight(
             shape=(1, self.units, self.units),
             name="plastic_kernel",
@@ -93,35 +143,89 @@ class PlasticRNNCell(tf.keras.layers.SimpleRNNCell):
         prev_output = states[0]
         plastic_vals = tf.reshape(states[1], (-1, self.units, self.units))
 
-        dp_mask = self.get_dropout_mask_for_cell(inputs, training)
-        rec_dp_mask = self.get_recurrent_dropout_mask_for_cell(prev_output, training)
-        if dp_mask is not None:
-            h = K.dot(inputs * dp_mask, self.kernel)
-        else:
-            h = K.dot(inputs, self.kernel)
-
-        if self.bias is not None:
-            h = K.bias_add(h, self.bias)
-
-        if rec_dp_mask is not None:
-            prev_output *= rec_dp_mask
-
-        output = h + K.dot(prev_output, self.recurrent_kernel)
+        # Avoid applying the activation until after the plasticity is applied
+        # Otherwise layer outputs may not follow expected behavior
+        _activation = self.activation
+        self.activation = None
+        output, next_states = super().call(inputs, states, training=training)
+        self.activation = _activation
 
         # Apply plasticity
         output = output + K.batch_dot(prev_output, self.plastic_kernel * plastic_vals)
-
-        if self.activation is not None:
-            output = self.activation(output)
-
         plastic_vals = self.plastic_update(
             self.plastic_lr, prev_output, output, plastic_vals
         )
 
-        # Properly set learning phase on output tensor.
-        if 0 < self.dropout + self.recurrent_dropout:
-            if training is None:
-                output._uses_learning_phase = True
+        if self.activation is not None:
+            output = self.activation(output)
+
+        return output, [output, K.batch_flatten(plastic_vals)]
+
+    def get_config(self):
+        config = {"plasticity_rule": self.plasticity_rule}
+        base_config = super().get_config()
+        return dict(**base_config, **config)
+
+
+class PlasticRNNCellAlt(tf.keras.layers.SimpleRNNCell):
+    """
+    Extends the Keras SimpleRNNCell with a differentiable plasticity mechanism.
+
+    Alternative implementation that relies on the parent call function.
+
+    Reference:
+        https://arxiv.org/abs/1804.02464
+    """
+
+    def __init__(
+        self, units, plasticity_rule="oja", **kwargs,
+    ):
+        super().__init__(units, **kwargs)
+        self.state_size = (self.units, self.units ** 2)
+
+        self.plastic_kernel = None
+        self.plastic_lr = None
+        self.plasticity_rule = plasticity_rule
+        self.plastic_update = plasticity_update_rules[plasticity_rule]
+
+    def build(self, input_shape):
+        # Plastic kernel has an extra dimension to allow broadcasting over different
+        # plastic values.
+        self.plastic_kernel = self.add_weight(
+            shape=(self.units, self.units),
+            name="plastic_kernel",
+            initializer=self.kernel_initializer,
+            regularizer=self.kernel_regularizer,
+            constraint=self.kernel_constraint,
+        )
+        self.plastic_lr = self.add_weight(
+            shape=(1,),
+            name="plastic_lr",
+            initializer=self.bias_initializer,
+            regularizer=self.bias_regularizer,
+            constraint=self.bias_constraint,
+        )
+        super().build(input_shape)
+
+    def call(self, inputs, states, training=None):
+        prev_output = states[0]
+        plastic_vals = tf.reshape(states[1], (-1, self.units, self.units))
+
+        # Avoid applying the activation until after the plasticity is applied
+        # Otherwise layer outputs may not follow expected behavior
+        _activation = self.activation
+        self.activation = None
+        output, next_states = super().call(inputs, states, training=training)
+        self.activation = _activation
+
+        # Apply plasticity
+        output = output + K.batch_dot(prev_output, self.plastic_kernel * plastic_vals)
+        plastic_vals = self.plastic_update(
+            self.plastic_lr, prev_output, output, plastic_vals
+        )
+
+        if self.activation is not None:
+            output = self.activation(output)
         return output, [output, K.batch_flatten(plastic_vals)]
 
     def get_config(self):
@@ -173,7 +277,7 @@ class PlasticRNN(tf.keras.layers.SimpleRNN):
         )
         self.plasticity_rule = plasticity_rule
 
-        self.cell = PlasticRNNCell(
+        self.cell = PlasticRNNCellAlt(
             units,
             activation=activation,
             bias_constraint=bias_constraint,
@@ -212,8 +316,7 @@ class PlasticGRUCell(tf.keras.layers.GRUCell):
         self.plastic_kernel = None
         self.plastic_lr = None
         self.plasticity_rule = plasticity_rule
-        self.plastic_update = oja if plasticity_rule == "oja" else hebb
-        self.plastic_val = None
+        self.plastic_update = plasticity_update_rules[plasticity_rule]
 
     def build(self, input_shape):
         self.plastic_kernel = self.add_weight(
@@ -354,7 +457,7 @@ class PlasticGRUCell(tf.keras.layers.GRUCell):
         return dict(**base_config, **config)
 
 
-class PlasticGRU(tf.keras.layers.GRU):
+class PlasticGRU(tf.keras.layers.RNN):
     """
     Augments the Keras GRU with a differentiable plasticity mechanism.
 
@@ -366,6 +469,7 @@ class PlasticGRU(tf.keras.layers.GRU):
         self,
         units,
         activation="tanh",
+        activity_regularizer=None,
         bias_constraint=None,
         bias_initializer="zeros",
         bias_regularizer=None,
@@ -388,9 +492,28 @@ class PlasticGRU(tf.keras.layers.GRU):
         use_bias=True,
         **kwargs,
     ):
-        super().__init__(
+        cell = PlasticGRUCell(
             units,
+            activation=activation,
+            bias_constraint=bias_constraint,
+            bias_initializer=bias_initializer,
+            bias_regularizer=bias_regularizer,
             dropout=dropout,
+            dtype=kwargs.get("dtype"),
+            kernel_constraint=kernel_constraint,
+            kernel_initializer=kernel_initializer,
+            kernel_regularizer=kernel_regularizer,
+            recurrent_activation=recurrent_activation,
+            recurrent_constraint=recurrent_constraint,
+            recurrent_dropout=recurrent_dropout,
+            recurrent_initializer=recurrent_initializer,
+            recurrent_regularizer=recurrent_regularizer,
+            reset_after=reset_after,
+            trainable=kwargs.get("trainable", True),
+            use_bias=use_bias,
+        )
+        super().__init__(
+            cell,
             go_backwards=go_backwards,
             return_sequences=return_sequences,
             return_state=return_state,
@@ -398,31 +521,34 @@ class PlasticGRU(tf.keras.layers.GRU):
             unroll=unroll,
             **kwargs,
         )
-
+        self.activity_regularizer = regularizers.get(activity_regularizer)
+        self.input_spec = [InputSpec(ndim=3)]
         self.plasticity_rule = plasticity_rule
-        self.cell = PlasticGRUCell(
-            units,
-            activation=activation,
-            bias_constraint=bias_constraint,
-            bias_initializer=bias_initializer,
-            bias_regularizer=bias_regularizer,
-            dropout=dropout,
-            kernel_constraint=kernel_constraint,
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer,
-            plasticity_rule=plasticity_rule,
-            recurrent_activation=recurrent_activation,
-            recurrent_constraint=recurrent_constraint,
-            recurrent_dropout=recurrent_dropout,
-            recurrent_initializer=recurrent_initializer,
-            recurrent_regularizer=recurrent_regularizer,
-            reset_after=reset_after,
-            use_bias=use_bias,
-        )
 
     def get_config(self):
-        config = {"plasticity_rule": self.plasticity_rule}
+        config = {
+            "activation": activations.serialize(self.activation),
+            "activity_regularizer": regularizers.serialize(self.activity_regularizer),
+            "bias_constraint": constraints.serialize(self.bias_constraint),
+            "bias_initializer": initializers.serialize(self.bias_initializer),
+            "bias_regularizer": regularizers.serialize(self.bias_regularizer),
+            "dropout": self.dropout,
+            "implementation": self.implementation,
+            "kernel_constraint": constraints.serialize(self.kernel_constraint),
+            "kernel_initializer": initializers.serialize(self.kernel_initializer),
+            "kernel_regularizer": regularizers.serialize(self.kernel_regularizer),
+            "plasticity_rule": self.plasticity_rule,
+            "recurrent_activation": activations.serialize(self.recurrent_activation),
+            "recurrent_constraint": constraints.serialize(self.recurrent_constraint),
+            "recurrent_dropout": self.recurrent_dropout,
+            "recurrent_initializer": initializers.serialize(self.recurrent_initializer),
+            "recurrent_regularizer": regularizers.serialize(self.recurrent_regularizer),
+            "unit_forget_bias": self.unit_forget_bias,
+            "units": self.units,
+            "use_bias": self.use_bias,
+        }
         base_config = super().get_config()
+        del base_config["cell"]
         return dict(**base_config, **config)
 
 
@@ -443,8 +569,7 @@ class PlasticLSTMCell(tf.keras.layers.LSTMCell):
         self.plastic_kernel = None
         self.plastic_lr = None
         self.plasticity_rule = plasticity_rule
-        self.plastic_update = oja if plasticity_rule == "oja" else hebb
-        self.plastic_val = None
+        self.plastic_update = plasticity_update_rules[plasticity_rule]
 
     def build(self, input_shape):
         self.plastic_kernel = self.add_weight(
@@ -541,7 +666,7 @@ class PlasticLSTMCell(tf.keras.layers.LSTMCell):
         return dict(**base_config, **config)
 
 
-class PlasticLSTM(tf.keras.layers.LSTM):
+class PlasticLSTM(tf.keras.layers.RNN):
     """
     Augments the Keras LSTM with a differentiable plasticity mechanism.
 
@@ -576,8 +701,28 @@ class PlasticLSTM(tf.keras.layers.LSTM):
         use_bias=True,
         **kwargs,
     ):
-        super().__init__(
+        cell = PlasticLSTMCell(
             units,
+            activation=activation,
+            bias_constraint=bias_constraint,
+            bias_initializer=bias_initializer,
+            bias_regularizer=bias_regularizer,
+            dropout=dropout,
+            dtype=kwargs.get("dtype"),
+            kernel_constraint=kernel_constraint,
+            kernel_initializer=kernel_initializer,
+            kernel_regularizer=kernel_regularizer,
+            recurrent_activation=recurrent_activation,
+            recurrent_constraint=recurrent_constraint,
+            recurrent_dropout=recurrent_dropout,
+            recurrent_initializer=recurrent_initializer,
+            recurrent_regularizer=recurrent_regularizer,
+            trainable=kwargs.get("trainable", True),
+            unit_forget_bias=unit_forget_bias,
+            use_bias=use_bias,
+        )
+        super().__init__(
+            cell,
             go_backwards=go_backwards,
             return_sequences=return_sequences,
             return_state=return_state,
@@ -585,32 +730,34 @@ class PlasticLSTM(tf.keras.layers.LSTM):
             unroll=unroll,
             **kwargs,
         )
-
+        self.activity_regularizer = regularizers.get(activity_regularizer)
+        self.input_spec = [InputSpec(ndim=3)]
         self.plasticity_rule = plasticity_rule
-        self.cell = PlasticLSTMCell(
-            units,
-            activation=activation,
-            activity_regularizer=activity_regularizer,
-            bias_constraint=bias_constraint,
-            bias_initializer=bias_initializer,
-            bias_regularizer=bias_regularizer,
-            dropout=dropout,
-            kernel_constraint=kernel_constraint,
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer,
-            plasticity_rule=plasticity_rule,
-            recurrent_activation=recurrent_activation,
-            recurrent_constraint=recurrent_constraint,
-            recurrent_dropout=recurrent_dropout,
-            recurrent_initializer=recurrent_initializer,
-            recurrent_regularizer=recurrent_regularizer,
-            unit_forget_bias=unit_forget_bias,
-            use_bias=use_bias,
-        )
 
     def get_config(self):
-        config = {"plasticity_rule": self.plasticity_rule}
+        config = {
+            "activation": activations.serialize(self.activation),
+            "activity_regularizer": regularizers.serialize(self.activity_regularizer),
+            "bias_constraint": constraints.serialize(self.bias_constraint),
+            "bias_initializer": initializers.serialize(self.bias_initializer),
+            "bias_regularizer": regularizers.serialize(self.bias_regularizer),
+            "dropout": self.dropout,
+            "implementation": self.implementation,
+            "kernel_constraint": constraints.serialize(self.kernel_constraint),
+            "kernel_initializer": initializers.serialize(self.kernel_initializer),
+            "kernel_regularizer": regularizers.serialize(self.kernel_regularizer),
+            "plasticity_rule": self.plasticity_rule,
+            "recurrent_activation": activations.serialize(self.recurrent_activation),
+            "recurrent_constraint": constraints.serialize(self.recurrent_constraint),
+            "recurrent_dropout": self.recurrent_dropout,
+            "recurrent_initializer": initializers.serialize(self.recurrent_initializer),
+            "recurrent_regularizer": regularizers.serialize(self.recurrent_regularizer),
+            "unit_forget_bias": self.unit_forget_bias,
+            "units": self.units,
+            "use_bias": self.use_bias,
+        }
         base_config = super().get_config()
+        del base_config["cell"]
         return dict(**base_config, **config)
 
 
@@ -632,7 +779,7 @@ class NMPlasticRNNCell(tf.keras.layers.SimpleRNNCell):
         self.modulatory_kernel = None
         self.plastic_lr = None
         self.plasticity_rule = plasticity_rule
-        self.plastic_update = oja if plasticity_rule == "oja" else hebb
+        self.plastic_update = plasticity_update_rules[plasticity_rule]
 
     def build(self, input_shape):
         self.plastic_kernel = self.add_weight(
@@ -741,7 +888,6 @@ class NMPlasticRNN(tf.keras.layers.SimpleRNN):
             **kwargs,
         )
         self.plasticity_rule = plasticity_rule
-
         self.cell = NMPlasticRNNCell(
             units,
             activation=activation,

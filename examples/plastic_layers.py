@@ -40,7 +40,7 @@ def main(max_words=1000, max_len=128, batch_size=32, epochs=5):
             input_length=max_len,
             batch_input_shape=(batch_size, max_len),  # Must specify full batch shape for plastic layers
         ),
-        PlasticRNN(128),
+        PlasticRNN(128, plasticity_rule="alt_oja"),
         Dropout(0.5),
         Dense(
             num_classes,
