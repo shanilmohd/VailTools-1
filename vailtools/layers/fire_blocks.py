@@ -10,9 +10,9 @@ from ..utils import register_custom_objects
 
 class FireBlock1D(layers.Layer):
     """
-    Accepts sequence data, i.e. dimensions (batch, time, features).
+    Accepts sequence data, i.e. dimensions (batch size, time, features).
 
-    Reference:
+    References:
         https://arxiv.org/abs/1602.07360
     """
 
@@ -98,9 +98,9 @@ class FireBlock1D(layers.Layer):
 
 class FireBlock2D(layers.Layer):
     """
-    Accepts image data, i.e. dimensions (batch, width, height, features).
+    Accepts image data, i.e. dimensions (batch size, width, height, features).
 
-    Reference:
+    References:
         https://arxiv.org/abs/1602.07360
     """
 
@@ -186,9 +186,9 @@ class FireBlock2D(layers.Layer):
 
 class FireBlock3D(layers.Layer):
     """
-    Accepts volumetric data, i.e. dimensions (batch, width, height, depth, features).
+    Accepts volumetric data, i.e. dimensions (batch size, width, height, depth, features).
 
-    Reference:
+    References:
         https://arxiv.org/abs/1602.07360
     """
 
@@ -272,6 +272,4 @@ class FireBlock3D(layers.Layer):
         return self.merge([self.expand_1(pred), self.expand_3(pred)])
 
 
-register_custom_objects(
-    [FireBlock1D, FireBlock2D, FireBlock3D,]
-)
+register_custom_objects([FireBlock1D, FireBlock2D, FireBlock3D])

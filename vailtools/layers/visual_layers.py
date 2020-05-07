@@ -1,5 +1,4 @@
 import numpy as np
-from tensorflow.keras import backend as K
 from tensorflow.keras import layers
 
 from ..utils import register_custom_objects
@@ -237,104 +236,6 @@ class FractalBlock(layers.Layer):
             )
             branch_2 = layers[-1](inputs)
             return merges[-1]([branch_1, branch_2])
-
-
-class GlobalContextBlock(layers.Layer):
-    """
-    Implements the Global Context Module discussed in:
-        https://arxiv.org/abs/1904.11492
-    """
-
-    def __init__(
-        self,
-        activation="relu",
-        bias_initializer="zeros",
-        filters=16,
-        kernel_initializer="glorot_uniform",
-        merge=layers.Add,
-        project_inputs=False,
-        reduction_factor=4,
-        **kwargs,
-    ):
-        """
-        Args:
-            activation: (str or Callable)
-                Name or instance of a keras activation function.
-            bias_initializer: (str or Callable)
-                Name or instance of a keras.initializers.Initializer.
-            filters: (None or int)
-                Number of filters used in the expand convolutions.
-            kernel_initializer: (str or Callable)
-                Name or instance of a keras.initializers.Initializer.
-            merge: (keras.layers.Layer)
-                Layer used to merge branches of computation.
-            padding: (str)
-                Convolution padding strategy.
-            project_inputs: (bool)
-                Applies a linear projection to the inputs.
-                Required when filters does not equal the channel dimension of the inputs.
-            reduction_factor: (int)
-                Determines the number of filters in the first transform convolution.
-            **kwargs:
-        """
-        super().__init__(**kwargs)
-        self.activation = activation
-        self.bias_initializer = bias_initializer
-        self.filters = filters
-        self.kernel_initializer = kernel_initializer
-        self.project_inputs = project_inputs
-        self.reduction_factor = reduction_factor
-
-        self.context = layers.Conv2D(
-            activation="softmax",
-            bias_initializer=self.bias_initializer,
-            filters=1,
-            kernel_initializer=self.kernel_initializer,
-            kernel_size=(1, 1),
-        )
-        self.context_combine = layers.Dot(axes=[1, 2])
-        self.transform_1 = layers.Conv2D(
-            activation=self.activation,
-            bias_initializer=self.bias_initializer,
-            filters=self.filters // self.reduction_factor,
-            kernel_initializer=self.kernel_initializer,
-            kernel_size=(1, 1),
-        )
-        self.ln = layers.LayerNormalization()
-        self.transform_activation = layers.Activation(self.activation)
-        self.transform_2 = layers.Conv2D(
-            activation=self.activation,
-            bias_initializer=self.bias_initializer,
-            filters=self.filters,
-            kernel_initializer=self.kernel_initializer,
-            kernel_size=(1, 1),
-        )
-
-        if self.project_inputs:
-            self.projection = layers.Conv2D(
-                filters=self.filters,
-                kernel_size=(1, 1),
-                kernel_initializer=self.kernel_initializer,
-                bias_initializer=self.bias_initializer,
-            )
-
-        self.merge = merge()
-
-    def call(self, inputs, **kwargs):
-        if self.project_inputs:
-            inputs = self.projection(inputs)
-
-        # Context modelling
-        pred = self.context(inputs)
-        pred = K.squeeze(self.context_combine([inputs, pred]), axis=-1)
-
-        # Transform
-        pred = self.transform_1(pred)
-        pred = self.ln(pred)
-        pred = self.transform_activation(pred)
-        pred = self.transform_2(pred)
-
-        return self.merge([inputs, pred])
 
 
 class ResidualBlock(layers.Layer):
@@ -686,7 +587,6 @@ register_custom_objects(
         DenseBlock,
         DilationBlock,
         FractalBlock,
-        GlobalContextBlock,
         ResidualBlock,
         ResidualBottleneckBlock,
         SparseBlock,
