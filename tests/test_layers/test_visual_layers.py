@@ -29,13 +29,6 @@ def test_fractal_block():
     model.summary()
 
 
-def test_fire_block():
-    model = keras.models.Sequential([layers.FireBlock(filters=16)])
-    model.compile(optimizer="adam", loss="mse")
-    model.fit(np.random.random((32, 16, 16, 16)), np.random.random((32, 16, 16, 32)))
-    model.summary()
-
-
 def test_global_context_block():
     model = keras.models.Sequential([layers.GlobalContextBlock(filters=16)])
     model.compile(optimizer="adam", loss="mse")
