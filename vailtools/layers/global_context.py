@@ -94,6 +94,9 @@ class GlobalContext1D(layers.Layer):
 
         self.merge = merge()
 
+    def compute_output_shape(self, input_shape):
+        return (*input_shape[:-1], self.filters)
+
     def call(self, inputs, **kwargs):
         if self.project_inputs:
             inputs = self.projection(inputs)
@@ -202,6 +205,9 @@ class GlobalContext2D(layers.Layer):
         else:
             self.context_reshape_1 = layers.Reshape((1, -1, input_shape[-1]))
         self.context_reshape_2 = layers.Reshape((1, -1, 1))
+
+    def compute_output_shape(self, input_shape):
+        return (*input_shape[:-1], self.filters)
 
     def call(self, inputs, **kwargs):
         if self.project_inputs:
@@ -312,6 +318,9 @@ class GlobalContext3D(layers.Layer):
         else:
             self.context_reshape_1 = layers.Reshape((1, 1, -1, input_shape[-1]))
         self.context_reshape_2 = layers.Reshape((1, 1, -1, 1))
+
+    def compute_output_shape(self, input_shape):
+        return (*input_shape[:-1], self.filters)
 
     def call(self, inputs, **kwargs):
         if self.project_inputs:
