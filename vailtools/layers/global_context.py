@@ -100,7 +100,7 @@ class GlobalContext1D(layers.Layer):
 
         # Context modelling
         pred = self.context(inputs)
-        pred = self.context_combine([inputs, pred])
+        pred = self.context_combine([pred, inputs])
 
         # Transform
         pred = self.transform_1(pred)
@@ -168,7 +168,7 @@ class GlobalContext2D(layers.Layer):
         )
         self.context_reshape_1 = None
         self.context_reshape_2 = None
-        self.context_combine = layers.Dot(axes=[2, 3])
+        self.context_combine = layers.Dot(axes=2)
         self.transform_1 = layers.Conv2D(
             activation=self.activation,
             bias_initializer=self.bias_initializer,
@@ -201,7 +201,7 @@ class GlobalContext2D(layers.Layer):
             self.context_reshape_1 = layers.Reshape((1, -1, self.filters))
         else:
             self.context_reshape_1 = layers.Reshape((1, -1, input_shape[-1]))
-        self.context_reshape_2 = layers.Reshape((1, 1, -1))
+        self.context_reshape_2 = layers.Reshape((1, -1, 1))
 
     def call(self, inputs, **kwargs):
         if self.project_inputs:
@@ -209,8 +209,8 @@ class GlobalContext2D(layers.Layer):
 
         # Context modelling
         pred = self.context(inputs)
-        pred = self.context_combine([self.context_reshape_1(inputs), self.context_reshape_2(pred)])
-        pred = K.squeeze(pred, axis=-1)
+        pred = self.context_combine([self.context_reshape_2(pred), self.context_reshape_1(inputs)])
+        pred = K.squeeze(pred, axis=-2)
 
         # Transform
         pred = self.transform_1(pred)
@@ -278,7 +278,7 @@ class GlobalContext3D(layers.Layer):
         )
         self.context_reshape_1 = None
         self.context_reshape_2 = None
-        self.context_combine = layers.Dot(axes=[3, 4])
+        self.context_combine = layers.Dot(axes=3)
         self.transform_1 = layers.Conv3D(
             activation=self.activation,
             bias_initializer=self.bias_initializer,
@@ -311,7 +311,7 @@ class GlobalContext3D(layers.Layer):
             self.context_reshape_1 = layers.Reshape((1, 1, -1, self.filters))
         else:
             self.context_reshape_1 = layers.Reshape((1, 1, -1, input_shape[-1]))
-        self.context_reshape_2 = layers.Reshape((1, 1, 1, -1))
+        self.context_reshape_2 = layers.Reshape((1, 1, -1, 1))
 
     def call(self, inputs, **kwargs):
         if self.project_inputs:
@@ -319,8 +319,8 @@ class GlobalContext3D(layers.Layer):
 
         # Context modelling
         pred = self.context(inputs)
-        pred = self.context_combine([self.context_reshape_1(inputs), self.context_reshape_2(pred)])
-        pred = K.squeeze(K.squeeze(pred, axis=-1), axis=-1)
+        pred = self.context_combine([self.context_reshape_2(pred), self.context_reshape_1(inputs)])
+        pred = K.squeeze(K.squeeze(pred, axis=-2), axis=-2)
 
         # Transform
         pred = self.transform_1(pred)
