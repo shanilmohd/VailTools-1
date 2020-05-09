@@ -6,6 +6,8 @@ Converted from keras to tensorflow.keras.
 from tensorflow import keras
 from tensorflow.keras import backend as K
 
+from ..utils import register_custom_objects
+
 
 class DropBlock1D(keras.layers.Layer):
     """See: https://arxiv.org/pdf/1810.12890.pdf"""
@@ -301,3 +303,9 @@ class DropBlock2D(keras.layers.Layer):
             return outputs
 
         return K.in_train_phase(dropped_inputs, inputs, training=training)
+
+
+register_custom_objects([
+    DropBlock1D,
+    DropBlock2D,
+])

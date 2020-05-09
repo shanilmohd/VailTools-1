@@ -13,7 +13,7 @@ def test_drop_block_1d():
     )
     model.compile(optimizer="adam", loss="mse")
     model.fit(np.random.random((32, 16, 16)), np.random.random((32, 16, 16)))
-    model.summary()
+    model.save("tmp.ckpt")
 
 
 def test_drop_block_2d():
@@ -25,4 +25,3 @@ def test_drop_block_2d():
     )
     model.compile(optimizer="adam", loss="mse")
     model.fit(np.random.random((32, 16, 16, 16)), np.random.random((32, 16, 16, 16)))
-    model.summary()
