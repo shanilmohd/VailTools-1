@@ -34,6 +34,9 @@ class DropBlock1D(keras.layers.Layer):
         base_config = super().get_config()
         return {**base_config, **config}
 
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
     def compute_mask(self, inputs, mask=None):
         """
 
