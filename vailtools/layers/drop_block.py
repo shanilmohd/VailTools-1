@@ -1,6 +1,10 @@
 """
 Borrowed from https://github.com/CyberZHG/keras-drop-block on 2020/04/08.
 Converted from keras to tensorflow.keras.
+
+Todo: Loading models with DropBlock layers in them is not functional until TF 2.2.0
+    due to a bug in the keras.models.load_model function.
+    Reference: https://github.com/tensorflow/tensorflow/issues/37339
 """
 
 from tensorflow import keras
@@ -12,7 +16,7 @@ from ..utils import register_custom_objects
 class DropBlock1D(keras.layers.Layer):
     """See: https://arxiv.org/pdf/1810.12890.pdf"""
 
-    def __init__(self, rate, block_size=None, sync_channels=False, **kwargs):
+    def __init__(self, rate, block_size=None, sync_channels=False, dynamic=True,**kwargs):
         """
         Args:
             rate: Probability of dropping the original feature.
@@ -20,7 +24,7 @@ class DropBlock1D(keras.layers.Layer):
             sync_channels: Whether to use the same dropout for all channels.
             **kwargs: Arguments for parent class.
         """
-        super().__init__(**kwargs, dynamic=True)
+        super().__init__(dynamic=dynamic, **kwargs)
         self.block_size = block_size
         self.rate = rate
         self.sync_channels = sync_channels
@@ -149,7 +153,7 @@ class DropBlock2D(keras.layers.Layer):
     """See: https://arxiv.org/pdf/1810.12890.pdf"""
 
     def __init__(
-        self, rate, block_size=None, sync_channels=False, **kwargs,
+        self, rate, block_size=None, sync_channels=False, dynamic=True, **kwargs,
     ):
         """
         Args:
@@ -158,7 +162,7 @@ class DropBlock2D(keras.layers.Layer):
             sync_channels: Whether to use the same dropout for all channels.
             **kwargs: Arguments for parent class.
         """
-        super().__init__(**kwargs, dynamic=True)
+        super().__init__(dynamic=dynamic, **kwargs)
         self.block_size = block_size
         self.rate = rate
         self.sync_channels = sync_channels
