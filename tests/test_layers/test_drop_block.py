@@ -12,10 +12,10 @@ def test_drop_block_1d():
         ]
     )
     model.compile(optimizer="adam", loss="mse")
-    model.fit(np.random.random((32, 16, 16)), np.random.random((32, 16, 16)))
+    model.fit(np.random.random((4, 16, 16)), np.random.random((4, 16, 16)))
     model.save("tmp.ckpt")
     model = keras.models.load_model("tmp.ckpt")
-    model.predict(np.random.random((32, 16, 16)))
+    model.predict(np.random.random((4, 16, 16)))
 
 
 def test_drop_block_2d():
@@ -26,7 +26,7 @@ def test_drop_block_2d():
         ]
     )
     model.compile(optimizer="adam", loss="mse")
-    model.fit(np.random.random((32, 16, 16, 16)), np.random.random((32, 16, 16, 16)))
+    model.fit(np.random.random((4, 16, 16, 16)), np.random.random((4, 16, 16, 16)))
     model.save("tmp.ckpt")
     model = keras.models.load_model("tmp.ckpt")
-    model.predict(np.random.random((32, 16, 16, 16)))
+    model.predict(np.random.random((4, 16, 16, 16)))

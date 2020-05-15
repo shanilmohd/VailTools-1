@@ -2,7 +2,7 @@ import numpy as np
 
 from vailtools import networks
 
-train_x = np.random.random(size=(32, 32, 32, 1))
+train_x = np.random.random(size=(4, 32, 32, 1))
 
 
 def test_restrict_net():
@@ -10,7 +10,6 @@ def test_restrict_net():
         final_activation="sigmoid", output_channels=1, input_shape=(32, 32, 1),
     )
     model.compile(optimizer="adam", loss="mse")
-    model.summary()
     model.fit(train_x, train_x, epochs=1)
 
 
@@ -19,7 +18,6 @@ def test_u_net():
         final_activation="sigmoid", output_channels=1, input_shape=(32, 32, 1),
     )
     model.compile(optimizer="adam", loss="mse")
-    model.summary()
     model.fit(train_x, train_x, epochs=1)
 
 
@@ -28,7 +26,6 @@ def test_res_u_net():
         final_activation="sigmoid", output_channels=1, input_shape=(32, 32, 1),
     )
     model.compile(optimizer="adam", loss="mse")
-    model.summary()
     model.fit(train_x, train_x, epochs=1)
 
 
@@ -37,7 +34,6 @@ def test_dilated_net():
         final_activation="sigmoid", output_channels=1, input_shape=(32, 32, 1),
     )
     model.compile(optimizer="adam", loss="mse")
-    model.summary()
     model.fit(train_x, train_x, epochs=1)
 
 
@@ -46,5 +42,4 @@ def test_res_dilated_net():
         final_activation="sigmoid", output_channels=1, input_shape=(32, 32, 1),
     )
     model.compile(optimizer="adam", loss="mse")
-    model.summary()
     model.fit(train_x, train_x, epochs=1)

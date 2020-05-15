@@ -151,7 +151,7 @@ class Fire1D(FireModule):
         )
 
 
-class Fire2D(layers.Layer):
+class Fire2D(FireModule):
     """
     Implements the Fire module discussed in https://arxiv.org/abs/1602.07360.
     Accepts image data, i.e. dimensions (batch size, width, height, features).
@@ -211,7 +211,7 @@ class Fire2D(layers.Layer):
         )
 
 
-class Fire3D(layers.Layer):
+class Fire3D(FireModule):
     """
     Implements the Fire module discussed in https://arxiv.org/abs/1602.07360.
     Accepts volumetric data, i.e. dimensions (batch size, width, height, depth, features).

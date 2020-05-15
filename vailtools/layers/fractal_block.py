@@ -53,10 +53,12 @@ class FractalBlock(layers.Layer):
         self.filters = filters
         self.kernel_initializer = kernel_initializer
         self.kernel_size = kernel_size
-        self.merge = merge()
+        self.merge = merge
         self.padding = padding
+
+        self.primary_layer = primary_layer
         self.layers = [
-            primary_layer(
+            self.primary_layer(
                 activation=self.activation,
                 bias_initializer=self.bias_initializer,
                 filters=self.filters,
@@ -66,7 +68,7 @@ class FractalBlock(layers.Layer):
             )
             for _ in range(self.get_layer_count(self.depth))
         ]
-        self.merges = [merge() for _ in range(self.get_merge_count(self.depth))]
+        self.merges = [self.merge() for _ in range(self.get_merge_count(self.depth))]
 
     def get_layer_count(self, depth):
         if depth == 1:
@@ -101,6 +103,21 @@ class FractalBlock(layers.Layer):
             )
             branch_2 = layers[-1](inputs)
             return merges[-1]([branch_1, branch_2])
+
+    def get_config(self):
+        base = super().get_config()
+        config = {
+            "primary_layer": self.primary_layer,
+            "activation": self.activation,
+            "bias_initializer": self.bias_initializer,
+            "depth": self.depth,
+            "filters": self.filters,
+            "kernel_initializer": self.kernel_initializer,
+            "kernel_size": self.kernel_size,
+            "merge": self.merge,
+            "padding": self.padding,
+        }
+        return {**base, **config}
 
 
 class Fractal1D(FractalBlock):

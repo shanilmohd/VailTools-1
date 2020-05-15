@@ -12,8 +12,7 @@ def test_coodinate_channel_1d():
         ]
     )
     model.compile(optimizer="adam", loss="mse")
-    model.fit(np.random.random((32, 16, 16)), np.random.random((32, 16, 16)))
-    model.summary()
+    model.fit(np.random.random((4, 16, 16)), np.random.random((4, 16, 16)))
 
 
 def test_coodinate_channel_2d():
@@ -24,8 +23,7 @@ def test_coodinate_channel_2d():
         ]
     )
     model.compile(optimizer="adam", loss="mse")
-    model.fit(np.random.random((32, 16, 16, 16)), np.random.random((32, 16, 16, 16)))
-    model.summary()
+    model.fit(np.random.random((4, 16, 16, 16)), np.random.random((4, 16, 16, 16)))
 
 
 def test_coodinate_channel_3d():
@@ -37,6 +35,5 @@ def test_coodinate_channel_3d():
     )
     model.compile(optimizer="adam", loss="mse")
     model.fit(
-        np.random.random((32, 16, 16, 16, 16)), np.random.random((32, 16, 16, 16, 16))
+        np.random.random((4, 16, 16, 16, 16)), np.random.random((4, 16, 16, 16, 16))
     )
-    model.summary()
