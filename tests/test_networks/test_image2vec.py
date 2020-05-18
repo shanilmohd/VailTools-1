@@ -11,5 +11,4 @@ def test_res_net():
         final_activation="sigmoid", num_classes=10, input_shape=(28, 28, 1),
     )
     model.compile(optimizer="adam", loss="sparse_categorical_crossentropy")
-    model.summary()
     model.fit(train_x, train_y, epochs=1)

@@ -10,7 +10,6 @@ def test_plastic_rnn():
     )
     model.compile(optimizer="adam", loss="mse")
     model.fit(np.random.random((4, 16, 16)), np.random.random((4, 16)))
-    model.summary()
 
 
 def test_plastic_gru():
@@ -19,7 +18,6 @@ def test_plastic_gru():
     )
     model.compile(optimizer="adam", loss="mse")
     model.fit(np.random.random((4, 16, 16)), np.random.random((4, 16)))
-    model.summary()
 
 
 def test_plastic_lstm():
@@ -28,7 +26,6 @@ def test_plastic_lstm():
     )
     model.compile(optimizer="adam", loss="mse")
     model.fit(np.random.random((4, 16, 16)), np.random.random((4, 16)))
-    model.summary()
 
 
 def test_nm_plastic_rnn():
@@ -37,4 +34,3 @@ def test_nm_plastic_rnn():
     )
     model.compile(optimizer="adam", loss="mse")
     model.fit(np.random.random((4, 16, 16)), np.random.random((4, 16)))
-    model.summary()

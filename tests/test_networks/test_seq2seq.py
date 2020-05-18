@@ -19,7 +19,6 @@ def test_wave_net(
     y_train = np.random.randint(0, 2, size=(batches * batch_size, 1))
 
     model.fit(x_train, y_train, batch_size=batch_size)
-    model.summary()
 
 
 def test_snail_control(
@@ -37,7 +36,6 @@ def test_snail_control(
     y_train = np.random.randint(0, 2, size=(batches * batch_size, 1))
 
     model.fit(x_train, y_train, batch_size=batch_size)
-    model.summary()
 
 
 def test_snail_mdp(
@@ -55,7 +53,6 @@ def test_snail_mdp(
     y_train = np.random.randint(0, 2, size=(batches * batch_size, 1))
 
     model.fit(x_train, y_train, batch_size=batch_size)
-    model.summary()
 
 
 def test_snail_visual(
@@ -73,4 +70,3 @@ def test_snail_visual(
     y_train = np.random.randint(0, 2, size=(batches * batch_size, 1))
 
     model.fit(x_train, y_train, batch_size=batch_size)
-    model.summary()

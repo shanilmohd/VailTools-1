@@ -16,7 +16,9 @@ from ..utils import register_custom_objects
 class DropBlock1D(keras.layers.Layer):
     """See: https://arxiv.org/pdf/1810.12890.pdf"""
 
-    def __init__(self, rate, block_size=None, sync_channels=False, dynamic=True,**kwargs):
+    def __init__(
+        self, rate, block_size=None, sync_channels=False, dynamic=True, **kwargs
+    ):
         """
         Args:
             rate: Probability of dropping the original feature.
@@ -309,7 +311,6 @@ class DropBlock2D(keras.layers.Layer):
         return K.in_train_phase(dropped_inputs, inputs, training=training)
 
 
-register_custom_objects([
-    DropBlock1D,
-    DropBlock2D,
-])
+register_custom_objects(
+    [DropBlock1D, DropBlock2D,]
+)
