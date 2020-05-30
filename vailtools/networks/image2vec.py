@@ -1,7 +1,7 @@
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model
 
-from ..layers.visual_layers import ResidualBlock
+from ..layers import Residual2D
 
 
 def res_net(
@@ -24,7 +24,7 @@ def res_net(
 
     for _ in range(depth):
         for i in range(blocks_per_layer):
-            pred = ResidualBlock(
+            pred = Residual2D(
                 activation=activation,
                 bias_initializer=bias_initializer,
                 filters=filters,

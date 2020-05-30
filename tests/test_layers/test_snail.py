@@ -24,7 +24,7 @@ def test_snail_dense_chain():
         ]
     )
     model.compile(optimizer="adam", loss="mse")
-    model.fit(np.random.random((4, 16, 16)), np.random.random((4, 16, 16 + 16 * 4)))
+    model.fit(np.random.random((4, 16, 16)), np.random.random((4, 16, 16 + 16 * 2)))
 
 
 def test_snail_tc():

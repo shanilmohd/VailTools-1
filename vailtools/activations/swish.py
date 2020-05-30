@@ -3,6 +3,15 @@ from tensorflow.keras import backend as K
 
 from ..utils import register_custom_objects
 
+if getattr(keras.activations, "swish", None) is None:
+
+    def swish(x):
+        return x * keras.activations.sigmoid(x)
+
+
+else:
+    swish = keras.activations.swish
+
 
 def mish(x):
     """
@@ -80,4 +89,4 @@ class Mish(keras.layers.Layer):
         return {**base_config, **config}
 
 
-register_custom_objects([mish, Mish, Swish])
+register_custom_objects([mish, Mish, swish, Swish])

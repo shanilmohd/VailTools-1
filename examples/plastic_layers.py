@@ -1,7 +1,7 @@
 """
 Adapted from https://medium.com/@erikhallstrm/hello-world-rnn-83cd7105b767
-Intended to provide a small, self-contained test case for ensuring that the tensorflow
-implementation of plastic layers is functioning.
+Intended to provide a small, self-contained test case for ensuring that the
+plastic layers are functioning.
 Note that this only ensures that the computation graphs are correctly constructed,
 allowing the layers to be used more widely for comprehensive testing.
 """
@@ -14,36 +14,38 @@ from vailtools.layers import PlasticRNN
 
 
 def main(max_words=1000, max_len=128, batch_size=32, epochs=5):
-    print('Loading data...')
-    (x_train, y_train), (x_test, y_test) = reuters.load_data(num_words=max_words, maxlen=max_len, test_split=0.2)
+    print("Loading data...")
+    (x_train, y_train), (x_test, y_test) = reuters.load_data(
+        num_words=max_words, maxlen=max_len, test_split=0.2
+    )
 
     x_train = ragged_to_non_ragged(x_train, max_len=max_len)
     x_test = ragged_to_non_ragged(x_test, max_len=max_len)
-    x_train = x_train[:-(len(x_train) % batch_size)]
-    x_test = x_test[:-(len(x_test) % batch_size)]
+    x_train = x_train[: -(len(x_train) % batch_size)]
+    x_test = x_test[: -(len(x_test) % batch_size)]
     print(f"Input Train Shape: {x_train.shape}")
     print(f"Input Test Shape:  {x_test.shape}")
 
-    y_train = y_train[:-(len(y_train) % batch_size)]
-    y_test = y_test[:-(len(y_test) % batch_size)]
+    y_train = y_train[: -(len(y_train) % batch_size)]
+    y_test = y_test[: -(len(y_test) % batch_size)]
     print(f"Output Train Shape: {y_train.shape}")
     print(f"Output Test Shape:  {y_test.shape}")
 
     num_classes = np.max(y_train) + 1
-    print(num_classes, 'classes')
+    print(num_classes, "classes")
 
-    print('Building model...')
-    model = Sequential([
-        Embedding(input_dim=max_words + 1, output_dim=64),
-        PlasticRNN(128, plasticity_rule="hebb"),
-        Dropout(0.5),
-        Dense(num_classes, activation='softmax'),
-    ])
+    print("Building model...")
+    model = Sequential(
+        [
+            Embedding(input_dim=max_words + 1, output_dim=64),
+            PlasticRNN(128, plasticity_rule="hebb"),
+            Dropout(0.5),
+            Dense(num_classes, activation="softmax"),
+        ]
+    )
 
     model.compile(
-        loss='sparse_categorical_crossentropy',
-        optimizer='adam',
-        metrics=['accuracy'],
+        loss="sparse_categorical_crossentropy", optimizer="adam", metrics=["accuracy"],
     )
 
     model.fit(
@@ -54,14 +56,9 @@ def main(max_words=1000, max_len=128, batch_size=32, epochs=5):
         verbose=1,
         validation_split=0.1,
     )
-    results = model.evaluate(
-        x_test,
-        y_test,
-        batch_size=batch_size,
-        verbose=1,
-    )
-    print('Test loss:', results[0])
-    print('Test accuracy:', results[1])
+    results = model.evaluate(x_test, y_test, batch_size=batch_size, verbose=1,)
+    print("Test loss:", results[0])
+    print("Test accuracy:", results[1])
 
 
 def ragged_to_non_ragged(ragged, max_len=None, pad_side="left", pad_value=0, dtype=int):
@@ -77,12 +74,12 @@ def ragged_to_non_ragged(ragged, max_len=None, pad_side="left", pad_value=0, dty
             row = row[:max_len]
 
         if pad_side == "left":
-            non_ragged[i, -len(row):] = np.array(row)
+            non_ragged[i, -len(row) :] = np.array(row)
         else:
-            non_ragged[i, :len(row)] = np.array(row)
+            non_ragged[i, : len(row)] = np.array(row)
 
     return non_ragged
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -14,12 +14,15 @@ from .plastic_layers import (
     PlasticRNN,
     PlasticRNNCell,
 )
+from .residual import (
+    Residual1D,
+    Residual2D,
+    Residual3D,
+    ResidualBottleneck1D,
+    ResidualBottleneck2D,
+    ResidualBottleneck3D,
+)
 from .snail import SnailAttentionBlock, SnailDenseBlock, SnailTCBlock
 from .sparse_block import Sparse1D, Sparse2D, Sparse3D
-from .visual_layers import (
-    DilationBlock,
-    ResidualBlock,
-    ResidualBottleneckBlock,
-    SqueezeExciteBlock,
-)
+from .squeeze_excite import SqueezeExcite1D, SqueezeExcite2D, SqueezeExcite3D
 from .wave_net import WaveNetBlock

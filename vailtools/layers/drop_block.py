@@ -311,6 +311,4 @@ class DropBlock2D(keras.layers.Layer):
         return K.in_train_phase(dropped_inputs, inputs, training=training)
 
 
-register_custom_objects(
-    [DropBlock1D, DropBlock2D,]
-)
+register_custom_objects([DropBlock1D, DropBlock2D])

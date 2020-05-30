@@ -10,6 +10,12 @@ def test_mish_dense():
     model.fit(np.random.random((32, 16)), np.random.random((32, 10)))
 
 
+def test_swish_dense_str():
+    model = keras.models.Sequential([keras.layers.Dense(10, activation="swish")])
+    model.compile(optimizer="adam", loss="mse")
+    model.fit(np.random.random((32, 16)), np.random.random((32, 10)))
+
+
 def test_swish_dense():
     model = keras.models.Sequential([keras.layers.Dense(10), activations.Swish()])
     model.compile(optimizer="adam", loss="mse")
