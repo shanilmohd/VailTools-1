@@ -216,7 +216,6 @@ class CoordinateChannel1D(CoordinateChannel):
     def get_config(self):
         config = super().get_config()
         config.pop("rank")
-        config.pop("use_radius")
         return config
 
 
@@ -295,7 +294,6 @@ class CoordinateChannel3D(CoordinateChannel):
     def get_config(self):
         config = super().get_config()
         config.pop("rank")
-        config.pop("use_radius")
         return config
 
 

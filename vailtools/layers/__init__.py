@@ -22,6 +22,7 @@ from .residual import (
     ResidualBottleneck2D,
     ResidualBottleneck3D,
 )
+from .selective_kernel import SelectiveKernel1D, SelectiveKernel2D, SelectiveKernel3D
 from .snail import SnailAttentionBlock, SnailDenseBlock, SnailTCBlock
 from .sparse_block import Sparse1D, Sparse2D, Sparse3D
 from .squeeze_excite import SqueezeExcite1D, SqueezeExcite2D, SqueezeExcite3D

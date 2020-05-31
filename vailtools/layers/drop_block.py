@@ -14,7 +14,10 @@ from ..utils import register_custom_objects
 
 
 class DropBlock1D(keras.layers.Layer):
-    """See: https://arxiv.org/pdf/1810.12890.pdf"""
+    """
+    References:
+        https://arxiv.org/pdf/1810.12890.pdf
+    """
 
     def __init__(
         self, rate, block_size=None, sync_channels=False, dynamic=True, **kwargs
@@ -33,7 +36,6 @@ class DropBlock1D(keras.layers.Layer):
         self.supports_masking = True
 
     def get_config(self):
-        """ """
         config = {
             "block_size": self.block_size,
             "rate": self.rate,
@@ -47,24 +49,22 @@ class DropBlock1D(keras.layers.Layer):
 
     def compute_mask(self, inputs, mask=None):
         """
-
         Args:
           inputs: 
           mask: (Default value = None)
 
         Returns:
-
         """
         return mask
 
     def _get_gamma(self, feature_dim):
-        """Get the number of activation units to drop
+        """
+        Get the number of activation units to drop
 
         Args:
           feature_dim: 
 
         Returns:
-
         """
         feature_dim = K.cast(feature_dim, K.floatx())
         block_size = K.constant(self.block_size, dtype=K.floatx())
@@ -74,12 +74,10 @@ class DropBlock1D(keras.layers.Layer):
 
     def _compute_valid_seed_region(self, seq_length):
         """
-
         Args:
           seq_length: 
 
         Returns:
-
         """
         positions = K.arange(seq_length)
         half_block_size = self.block_size // 2
@@ -101,12 +99,10 @@ class DropBlock1D(keras.layers.Layer):
 
     def _compute_drop_mask(self, shape):
         """
-
         Args:
           shape: 
 
         Returns:
-
         """
         seq_length = shape[1]
         mask = K.random_binomial(shape, p=self._get_gamma(seq_length))
@@ -118,13 +114,11 @@ class DropBlock1D(keras.layers.Layer):
 
     def call(self, inputs, training=None):
         """
-
         Args:
           inputs: 
           training: (Default value = None)
 
         Returns:
-
         """
         if self.block_size is None:
             spatial_dims = K.int_shape(inputs)[1:-1]
@@ -152,7 +146,10 @@ class DropBlock1D(keras.layers.Layer):
 
 
 class DropBlock2D(keras.layers.Layer):
-    """See: https://arxiv.org/pdf/1810.12890.pdf"""
+    """
+    References:
+        https://arxiv.org/pdf/1810.12890.pdf
+    """
 
     def __init__(
         self, rate, block_size=None, sync_channels=False, dynamic=True, **kwargs,
@@ -171,7 +168,6 @@ class DropBlock2D(keras.layers.Layer):
         self.supports_masking = True
 
     def get_config(self):
-        """ """
         config = {
             "block_size": self.block_size,
             "rate": self.rate,
@@ -182,36 +178,32 @@ class DropBlock2D(keras.layers.Layer):
 
     def compute_mask(self, inputs, mask=None):
         """
-
         Args:
           inputs: 
           mask: (Default value = None)
 
         Returns:
-
         """
         return mask
 
     def compute_output_shape(self, input_shape):
         """
-
         Args:
           input_shape: 
 
         Returns:
-
         """
         return input_shape
 
     def _get_gamma(self, height, width):
-        """Get the number of activation units to drop
+        """
+        Get the number of activation units to drop
 
         Args:
           height: 
           width: 
 
         Returns:
-
         """
         height, width = K.cast(height, K.floatx()), K.cast(width, K.floatx())
         block_size = K.constant(self.block_size, dtype=K.floatx())
@@ -221,13 +213,11 @@ class DropBlock2D(keras.layers.Layer):
 
     def _compute_valid_seed_region(self, height, width):
         """
-
         Args:
           height: 
           width: 
 
         Returns:
-
         """
         positions = K.concatenate(
             [
@@ -261,12 +251,10 @@ class DropBlock2D(keras.layers.Layer):
 
     def _compute_drop_mask(self, shape):
         """
-
         Args:
           shape: 
 
         Returns:
-
         """
         height, width = shape[1], shape[2]
         mask = K.random_binomial(shape, p=self._get_gamma(height, width))
@@ -278,20 +266,17 @@ class DropBlock2D(keras.layers.Layer):
 
     def call(self, inputs, training=None):
         """
-
         Args:
           inputs: 
           training: (Default value = None)
 
         Returns:
-
         """
         if self.block_size is None:
             spatial_dims = K.int_shape(inputs)[1:-1]
             self.block_size = int(sum(spatial_dims) / len(spatial_dims) / 4)
 
         def dropped_inputs():
-            """ """
             data_format = K.image_data_format()
             outputs = inputs
             if data_format == "channels_first":
