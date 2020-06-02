@@ -56,10 +56,6 @@ def error_weighted_categorical_crossentropy(weights):
     """
 
     def wcc(y_true, y_pred):
-        y_pred = K.clip(
-            y_pred, K.epsilon(), 1 - K.epsilon()
-        )  # Clip for numerical stability
-
         final_mask = K.zeros_like(y_pred[:, 0])
         y_pred_max = K.max(y_pred, axis=-1, keepdims=True)
         y_pred_max_mat = K.cast(K.equal(y_pred, y_pred_max), K.floatx())
@@ -80,9 +76,8 @@ def class_weighted_categorical_crossentropy(weights):
     weights = K.variable(weights)
 
     def loss(y_true, y_pred):
-        y_pred = K.clip(
-            y_pred, K.epsilon(), 1 - K.epsilon()
-        )  # Clip for numerical stability
+        # Clip for numerical stability
+        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())
         return -K.sum(y_true * K.log(y_pred) * weights, axis=-1)
 
     return loss
