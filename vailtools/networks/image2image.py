@@ -9,11 +9,11 @@ from .. import layers
 
 
 def restrict_net(
-    activation="selu",
+    activation="relu",
     bias_initializer="zeros",
     depth=4,
     filters=16,
-    final_activation="selu",
+    final_activation="relu",
     input_shape=(None, None, None),
     kernel_initializer="glorot_uniform",
     noise_std=0.1,
@@ -131,12 +131,12 @@ def restrict_net(
 
 
 def u_net(
-    activation="selu",
+    activation="relu",
     bias_initializer="zeros",
     cross_merge=k_layers.Concatenate,
     depth=4,
     filters=16,
-    final_activation="selu",
+    final_activation="relu",
     input_shape=(None, None, None),
     kernel_initializer="glorot_uniform",
     noise_std=0.1,
@@ -261,13 +261,13 @@ def u_net(
 
 
 def res_u_net(
-    activation="selu",
+    activation="relu",
     bias_initializer="zeros",
     coord_features=False,
     cross_merge=k_layers.Concatenate,
     depth=4,
     filters=16,
-    final_activation="selu",
+    final_activation="relu",
     input_shape=(None, None, None),
     kernel_initializer="glorot_uniform",
     noise_std=0.1,
