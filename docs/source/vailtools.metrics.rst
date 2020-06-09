@@ -1,6 +1,11 @@
 vailtools.metrics package
 =========================
 
+.. automodule:: vailtools.metrics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Submodules
 ----------
 
@@ -12,19 +17,3 @@ vailtools.metrics.metrics module
    :undoc-members:
    :show-inheritance:
 
-vailtools.metrics.numpy\_metrics module
----------------------------------------
-
-.. automodule:: vailtools.metrics.numpy_metrics
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: vailtools.metrics
-   :members:
-   :undoc-members:
-   :show-inheritance:

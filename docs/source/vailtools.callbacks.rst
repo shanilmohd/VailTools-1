@@ -1,6 +1,11 @@
 vailtools.callbacks package
 ===========================
 
+.. automodule:: vailtools.callbacks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Submodules
 ----------
 
@@ -12,11 +17,3 @@ vailtools.callbacks.cyclic\_lr module
    :undoc-members:
    :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: vailtools.callbacks
-   :members:
-   :undoc-members:
-   :show-inheritance:

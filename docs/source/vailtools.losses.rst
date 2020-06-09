@@ -1,6 +1,11 @@
 vailtools.losses package
 ========================
 
+.. automodule:: vailtools.losses
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Submodules
 ----------
 
@@ -12,19 +17,11 @@ vailtools.losses.losses module
    :undoc-members:
    :show-inheritance:
 
-vailtools.losses.numpy\_losses module
--------------------------------------
+vailtools.losses.lovasz module
+------------------------------
 
-.. automodule:: vailtools.losses.numpy_losses
+.. automodule:: vailtools.losses.lovasz
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: vailtools.losses
-   :members:
-   :undoc-members:
-   :show-inheritance:

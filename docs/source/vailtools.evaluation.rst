@@ -1,6 +1,11 @@
 vailtools.evaluation package
 ============================
 
+.. automodule:: vailtools.evaluation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Submodules
 ----------
 
@@ -12,11 +17,3 @@ vailtools.evaluation.noise\_ensemble module
    :undoc-members:
    :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: vailtools.evaluation
-   :members:
-   :undoc-members:
-   :show-inheritance:

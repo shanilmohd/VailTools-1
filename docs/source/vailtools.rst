@@ -1,11 +1,17 @@
 vailtools package
 =================
 
+.. automodule:: vailtools
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Subpackages
 -----------
 
 .. toctree::
 
+   vailtools.activations
    vailtools.callbacks
    vailtools.data
    vailtools.evaluation
@@ -14,10 +20,14 @@ Subpackages
    vailtools.metrics
    vailtools.networks
 
-Module contents
----------------
+Submodules
+----------
 
-.. automodule:: vailtools
+vailtools.utils module
+----------------------
+
+.. automodule:: vailtools.utils
    :members:
    :undoc-members:
    :show-inheritance:
+

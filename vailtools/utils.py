@@ -1,5 +1,5 @@
-from tensorflow.keras.utils import get_custom_objects
 import numpy as np
+from tensorflow.keras.utils import get_custom_objects
 
 
 def register_custom_objects(objects):
@@ -7,6 +7,7 @@ def register_custom_objects(objects):
     Registers custom objects with tensorflow.keras.
     Should prevent the end user from needing to manually declare custom objects
     when saving and loading models made by or using VaiLTools
+    
     Todo: May want to ensure that builtin objects are not overwritten?
 
     Args:

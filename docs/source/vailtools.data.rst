@@ -1,8 +1,21 @@
 vailtools.data package
 ======================
 
+.. automodule:: vailtools.data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Submodules
 ----------
+
+vailtools.data.generate module
+------------------------------
+
+.. automodule:: vailtools.data.generate
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 vailtools.data.image\_tiling module
 -----------------------------------
@@ -20,11 +33,3 @@ vailtools.data.splits module
    :undoc-members:
    :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: vailtools.data
-   :members:
-   :undoc-members:
-   :show-inheritance:

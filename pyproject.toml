@@ -30,9 +30,11 @@ tensorflow = "^2"
 bandit = "*"
 black = {version = "*", allow-prereleases = true}
 isort = "*"
+m2r = "*"
 pytest = "*"
 pytest-cov = "*"
-sphinx = "*"
+# Keep sphinx >3 until M2R updates
+sphinx = "^2"
 vulture = "*"
 
 # isort config taken from https://github.com/psf/black

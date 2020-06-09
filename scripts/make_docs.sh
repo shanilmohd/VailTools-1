@@ -14,5 +14,5 @@ if [ ! -d docs ]; then
   )
 fi
 
-sphinx-apidoc -o docs/source vailtools
+sphinx-apidoc -M -f -o docs/source vailtools
 sphinx-build -b html docs/source docs/_build

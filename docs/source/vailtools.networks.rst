@@ -1,6 +1,11 @@
 vailtools.networks package
 ==========================
 
+.. automodule:: vailtools.networks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Submodules
 ----------
 
@@ -28,11 +33,3 @@ vailtools.networks.seq2seq module
    :undoc-members:
    :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: vailtools.networks
-   :members:
-   :undoc-members:
-   :show-inheritance:
