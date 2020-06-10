@@ -297,4 +297,6 @@ class CoordinateChannel3D(CoordinateChannel):
         return config
 
 
-register_custom_objects([CoordinateChannel1D, CoordinateChannel2D, CoordinateChannel3D])
+register_custom_objects(
+    [CoordinateChannel1D, CoordinateChannel2D, CoordinateChannel3D, CoordinateChannel]
+)
