@@ -40,7 +40,7 @@ class CoordinateChannel(Layer):
     """
 
     def __init__(self, rank, use_radius=False, data_format=None, **kwargs):
-        super().__init__(**kwargs, dynamic=True)
+        super().__init__(dynamic=True, **kwargs)
 
         if data_format not in [None, "channels_first", "channels_last"]:
             raise ValueError(
@@ -177,6 +177,7 @@ class CoordinateChannel(Layer):
             "data_format": self.data_format,
         }
         base_config = super().get_config()
+        base_config.pop("dynamic")
         return {**base_config, **config}
 
 
