@@ -1,6 +1,7 @@
 import numpy as np
 
 from vailtools.networks import snail_control, snail_mdp, snail_visual, wave_net
+from tensorflow import keras
 
 
 def test_wave_net(
@@ -19,6 +20,10 @@ def test_wave_net(
     y_train = np.random.randint(0, 2, size=(batches * batch_size, 1))
 
     model.fit(x_train, y_train, batch_size=batch_size)
+    model.save("tmp.ckpt")
+    del model
+    model = keras.models.load_model("tmp.ckpt")
+    model.predict(x_train)
 
 
 def test_snail_control(

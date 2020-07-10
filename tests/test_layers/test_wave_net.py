@@ -13,3 +13,7 @@ def test_wave_net_block():
         np.random.random((4, 16, 16)),
         (np.random.random((4, 16, 4)), np.random.random((4, 16, 4))),
     )
+    model.save("tmp.ckpt")
+    del model
+    model = keras.models.load_model("tmp.ckpt")
+    model.predict(np.random.random((4, 16, 16)))
