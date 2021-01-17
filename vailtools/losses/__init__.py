@@ -10,3 +10,4 @@ from .losses import (
     mse,
 )
 from .lovasz import lovasz_hinge, lovasz_softmax
+from .discriminative import discriminative_loss

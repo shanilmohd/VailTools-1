@@ -13,7 +13,7 @@ Please open an issue or contact us if you encounter any problems or have a
 feature request.
 
 ## Installation
-The prefered installation method is via `pip`:
+The preferred installation method is via `pip`:
 ```bash
 pip install git+https://gitlab.com/vail-uvm/vailtools.git
 ```

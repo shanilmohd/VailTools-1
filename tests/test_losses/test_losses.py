@@ -21,7 +21,7 @@ def test_iou_loss_anti_perfect():
 
 
 def test_class_mean_iou_loss_perfect():
-    y = np.random.randint(100, size=(4, 10, 10))
+    y = np.random.randint(1000, size=(4, 10, 10))
     y = y == np.max(y, axis=-1, keepdims=True)
     y = tf.convert_to_tensor(y, dtype=tf.float32)
     loss = losses.class_mean_iou_loss(y, y).numpy()
@@ -29,7 +29,7 @@ def test_class_mean_iou_loss_perfect():
 
 
 def test_class_mean_iou_loss_anti_perfect():
-    y = np.random.randint(100, size=(4, 10, 10))
+    y = np.random.randint(1000, size=(4, 10, 10))
     y = y == np.max(y, axis=-1, keepdims=True)
     x = np.roll(y, 1, axis=-1)
     loss = losses.iou_loss(
@@ -56,7 +56,7 @@ def test_dice_loss_anti_perfect():
 
 
 def test_ewc_loss_perfect():
-    y = np.random.randint(100, size=(3, 5))
+    y = np.random.randint(1000, size=(3, 5))
     y = tf.convert_to_tensor(y == np.max(y, axis=-1, keepdims=True), dtype=tf.float32)
     weights = np.random.random(size=(5, 5))
     l_func = losses.error_weighted_categorical_crossentropy(weights / weights.sum())
@@ -65,7 +65,7 @@ def test_ewc_loss_perfect():
 
 
 def test_ewc_loss_anti_perfect():
-    y = np.random.randint(100, size=(3, 5))
+    y = np.random.randint(1000, size=(3, 5))
     y = y == np.max(y, axis=-1, keepdims=True)
     x = np.roll(y, 1, axis=-1)
     weights = np.random.random(size=(5, 5))
@@ -78,7 +78,7 @@ def test_ewc_loss_anti_perfect():
 
 
 def test_cwc_loss_perfect():
-    y = np.random.randint(100, size=(3, 5))
+    y = np.random.randint(1000, size=(3, 5))
     y = tf.convert_to_tensor(y == np.max(y, axis=-1, keepdims=True), dtype=tf.float32)
     weights = np.random.random(size=(5,))
     l_func = losses.class_weighted_categorical_crossentropy(weights / weights.sum())
@@ -87,7 +87,7 @@ def test_cwc_loss_perfect():
 
 
 def test_cwc_loss_anti_perfect():
-    y = np.random.randint(100, size=(3, 5))
+    y = np.random.randint(1000, size=(3, 5))
     y = y == np.max(y, axis=-1, keepdims=True)
     x = np.roll(y, 1, axis=-1)
     weights = np.random.random(size=(5,))
@@ -113,12 +113,15 @@ def test_mixed_loss_anti_perfect():
     x = np.random.random(size=(3, 5))
     x = tf.convert_to_tensor(x, dtype=tf.float32)
     l_func = losses.mixed_l1_l2_loss()
-    loss = l_func(y, x,).numpy()
+    loss = l_func(
+        y,
+        x,
+    ).numpy()
     assert np.all(loss > 0)
 
 
 def test_focal_loss_perfect():
-    y = np.random.randint(100, size=(4, 10, 10))
+    y = np.random.randint(1000, size=(4, 10, 10))
     y = y == np.max(y, axis=-1, keepdims=True)
     y = tf.convert_to_tensor(y, dtype=tf.float32)
     loss = losses.focal_loss()(y, y).numpy()
@@ -126,7 +129,7 @@ def test_focal_loss_perfect():
 
 
 def test_focal_loss_anti_perfect():
-    y = np.random.randint(100, size=(4, 10, 10))
+    y = np.random.randint(1000, size=(4, 10, 10))
     y = y == np.max(y, axis=-1, keepdims=True)
     x = np.roll(y, 1, axis=-1)
     loss = losses.focal_loss()(

@@ -1,0 +1,17 @@
+name: vailtools-gpu
+dependencies:
+    - python=3.7
+    - numpy=*
+    - scikit-image=*
+    - tensorflow-gpu=*
+    - pip=*
+    - pip:
+          - bandit
+          - black
+          - isort
+          - m2r
+          - pytest
+          - pytest-cov
+          # Keep sphinx >3 until M2R updates
+          - sphinx<3
+          - vulture

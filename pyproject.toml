@@ -22,9 +22,11 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-numpy = "*"
+# Optional to prevent poetry from mangling a conda env
+numpy = {version = "*", optional = true}
 scikit-image = "*"
-tensorflow = "^2"
+# Optional to prevent poetry from mangling a conda env
+tensorflow-gpu = {version = "*", optional = true}
 
 [tool.poetry.dev-dependencies]
 bandit = "*"
