@@ -1,3 +1,12 @@
+"""
+TODO: May want to benchmark on additional datasets
+    - https://www.plant-phenotyping.org/datasets-download
+    - https://www.kaggle.com/c/data-science-bowl-2018
+TODO: May want to consider some tweaks introduced in newer papers
+    - https://arxiv.org/abs/1703.10277
+TODO: Implement pixel clustering to generate final instance segmentation
+    - https://gitlab.com/jhring/DataScienceBowl2018/-/blob/develop/src/discriminative_viz.py
+"""
 from vailtools.data.generate import SticksSequence
 from vailtools.losses import discriminative_loss
 from vailtools.networks import res_u_net
