@@ -19,7 +19,7 @@ VERSION = 0.4
 
 # Required packages
 REQUIRED = [
-    'keras', 'tensorflow', 'numpy'
+    'keras', 'numpy'
 ]
 
 # Optional packages
